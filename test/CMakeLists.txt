@@ -1,3 +1,7 @@
+# Mehmet Suyuti Dindar
+# 11.10.2013 
+# SmartSoft
+
 set(_sources test_safenet.cpp)
 
 set(GTEST_INCLUDE_DIR /usr/include/gtest)
@@ -9,17 +13,22 @@ set(CMAKE_CXX_FLAGS "-g -Wall")
 # Setup testing
 enable_testing()
 find_package(GTest REQUIRED)
+find_package(Cryptoki REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR})
 
-# Add test cpp file
 add_executable(runUnitTests
     test_safenet.cpp
 )
 
-# Link test executable against gtest & gtest_main
-target_link_libraries(runUnitTests ${GTEST_LIBRARY_DEBUG} pthread )
+target_link_libraries(runUnitTests  ${GTEST_LIBRARY_DEBUG} 
+                                    pthread 
+                                    Safenet 
+                                    cryptoki
+                                    ctutil
+                                    util
+                                    )
 
 add_test(
-    NAME runUnitTests
+    NAME    runUnitTests
     COMMAND runUnitTests
 )
