@@ -4,13 +4,18 @@
 
 set(cryptokiSources     cryptokiHelper/CryptokiHelper.cpp
                         cryptokiHelper/ExceptionCryptoki.cpp
-                        cryptokiHelper/Key.cpp)
+                        cryptokiHelper/Key.cpp
+                        cryptokiHelper/DataObject.cpp
+                        )
 
 set(utilSources         util/Buffer.cpp
                         util/logger.cpp)
 
-set(libSafenet_sources  SafenetHelper.cpp 
-                        SafenetHelperImpl.cpp
+set(libSources          SafenetHelper.cpp
+                        SafenetHelperImpl.cpp)
+
+set(libSafenet_sources  
+                        #${libSources}
                         ${utilSources}
                         ${cryptokiSources})
 
