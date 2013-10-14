@@ -11,6 +11,6 @@
 
 using namespace std;
 
-typedef std::vector<unsigned char*> VectorUChar;
+typedef std::vector<unsigned char> VectorUChar;
 
 #endif //_SAFENET_HELPER_TYPES_H_
