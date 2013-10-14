@@ -12,7 +12,7 @@
 #include "gtest/gtest.h"
 #include "../src/SafenetHelper.h"
 #include "../include/SafenetHelperErr.h"
-#include "../src/cryptokiHelper/ExceptionCryptoki.h"
+//#include "../src/cryptokiHelper/ExceptionCryptoki.h"
 
 //-----------------------------------------------------------------------
 // NOTICE
@@ -86,6 +86,7 @@ TEST_F(SafenetHelperTests, create_key_token) {
 	pS->login(slot, pin);
 
 }
+
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
