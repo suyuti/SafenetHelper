@@ -14,17 +14,17 @@
 SafenetHelperImpl::SafenetHelperImpl()
 {
 	std::string pin(HSM_SLOT_GIB_PIN);
-	_pCryptoki = CryptokiHelper::instance();
-	_pCryptoki->closeSession();
-	_pCryptoki->openSession(HSM_SLOT_GIB);
-	_pCryptoki->login(pin);
+//	_pCryptoki = CryptokiHelper::instance();
+//	_pCryptoki->closeSession();
+//	_pCryptoki->openSession(HSM_SLOT_GIB);
+//	_pCryptoki->login(pin);
 }
 
 int SafenetHelperImpl::login(unsigned long slotId, std::string& pin)
 {
-	_pCryptoki->closeSession();
-	_pCryptoki->openSession(slotId);
-	_pCryptoki->login(pin);
+//	_pCryptoki->closeSession();
+//	_pCryptoki->openSession(slotId);
+//	_pCryptoki->login(pin);
 	return SUCCESS;
 }
 
@@ -38,7 +38,7 @@ int SafenetHelperImpl::GenerateAES256Key(	std::string& keyName,
 	// lmkIndex'deki lmk keyi var mi
 	// yoksa activeLmk'yi kullan
 
-	Key _key = _pCryptoki->generateSecretKey(keyName, isTokenObject);
+//	Key _key = _pCryptoki->generateSecretKey(keyName, isTokenObject);
 
 	return SUCCESS;
 }
