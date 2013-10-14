@@ -1,106 +1,79 @@
-/*
- * Key.h
- *
- *  Created on: 1 Eyl 2013
- *      Author: hakilic
- */
-
-#ifndef KEY_H_
-#define KEY_H_
-
+#ifndef _KEY_H_
+#define _KEY_H_
 #include <string>
-#include <vector>
-
+#include "CryptokiHelperTypes.h"
+#include "../../include/SafenetHelperTypes.h"
 #include "cryptoki.h"
 
-#include "CryptokiHelperTypes.h"
-#include "../util/logger.h"
+namespace Cryptoki {
 
+typedef struct MechanismInfo {
+	MechanismType	_type;
+	void* 			_param;
+	unsigned long 	_paramLen;
+	MechanismInfo() :
+		_param(NULL),
+		_paramLen(0L)
+	{
+	};
+} MechanismInfo;
 
-using namespace std;
+typedef struct KeyAttribute {
+	std::string _label;
+	CK_BBOOL 	_wrap;
+	CK_BBOOL	_unwrap;
+	CK_BBOOL	_encrypt;
+	CK_BBOOL	_decrypt;
+	CK_BBOOL	_sensitive;
+	CK_BBOOL	_private;
+	CK_BBOOL	_extractable;
+	CK_BBOOL	_token;
+	CK_KEY_TYPE	_keyType;
 
-class Key {
+	KeyAttribute() :
+		_wrap		(TRUE),
+		_unwrap		(TRUE),
+		_encrypt	(TRUE),
+		_decrypt	(TRUE),
+		_sensitive	(TRUE),
+		_private	(TRUE),
+		_extractable(TRUE),
+		_token		(TRUE)
+	{
+	};
+
+} KeyAttribute, *HKeyAttribute;
+
+class CryptokiHelper;
+
+class Key
+{
+	friend class CryptokiHelper;
+private:
+	Key() {};
 public:
-	Key();
+	Key(CK_SESSION_HANDLE sessionHandle);
+	VectorUChar getKcv();
 
-	Key(CK_SESSION_HANDLE hndl);
-	virtual ~Key();
+	VectorUChar encrypt(const MechanismInfo& mech, const VectorUChar& data);
+	VectorUChar encrypt(const MechanismInfo& mech, const char* pData, int len);
 
-	/**
-	 * Replaces the label of the key object with newname
-	 * @param newName new key label
-	 */
-	void rename(const std::string newName);
+	VectorUChar decrypt(const MechanismInfo& mech, const VectorUChar& data);
+	VectorUChar decrypt(const MechanismInfo& mech, const char* pData, int len);
 
-	/**
-	 * Destroys the key object
-	 */
-	void destroy();
-
-	uchar*  getKCV(uchar *pKCV, int lenKCV);
-
-	/**
-	 * Encrypts data given in parameters
-	 * @param mechType Mechanism Type (MT_DES_CBC, MT_DES2_CBC, MT_DES3_CBC, MT_RSA_PKCS)
-	 * @param pData address of the data to be encrypted
-	 * @param dataLen length of data
-	 * @param iv address of initialize vector for CBC mode encryption, default value for ECB mode
-	 * @param ivLen length of initialize vector
-	 * @return a vector containing encrypted data
-	 */
-	std::vector<CK_BYTE> encryptData(MechanismType mechType, uchar* pData, ulong dataLen, void* iv = NULL_PTR, ulong ivLen=0);
-
-	/**
-	 * Decrypts data given in parameters
-	 * @param mechType Mechanism Type (MT_DES_CBC, MT_DES2_CBC, MT_DES3_CBC, MT_RSA_PKCS)
-	 * @param pData address of the data to be decrypted
-	 * @param dataLen length of data
-	 * @param iv iv address of initialize vector for CBC mode encryption, default value for ECB mode or RSA
-	 * @param ivLen length of initialize vector
-	 * @return a vector containing decrypted data
-	 */
-	std::vector<CK_BYTE> decryptData(MechanismType mechType, uchar* pData, ulong dataLen, void* iv = NULL_PTR, ulong ivLen=0);
-
-	/**
-	 * Wraps out a key given in parameter
-	 * @param mechType Mechanism Type (MT_DES_CBC, MT_DES2_CBC, MT_DES3_CBC, MT_RSA_PKCS)
-	 * @param key reference of the key to be wrapped
-	 * @param iv iv address of initialize vector for CBC mode encryption, default value for ECB mode
-	 * @param ivLen ivLen length of initialize vector
-	 * @return a vector containing wrapped key
-	 */
-	std::vector<CK_BYTE> wrapKey(MechanismType mechType, Key &key, void* iv = NULL_PTR, ulong ivLen=0);
-
-	/**
-	 * Unwrap a wrapped key given in parameters, build a new key inside HSM
-	 * @param mechType Mechanism Type (MT_DES_CBC, MT_DES2_CBC, MT_DES3_CBC, MT_RSA_PKCS)
-	 * @param keyType Type of key tobe unwrapped
-	 * @param pWrappedKey address of the wrapped key to be unwrapped
-	 * @param wrappedKeyLen length of wrapped key
-	 * @param iv iv address of initialize vector for CBC mode encryption, default value for ECB mode or RSA
-	 * @param ivLen ivLen length of initialize vector
-	 * @param isTokenObject if true permanent token object otherwise temporary session object
-	 * @return
-	 */
-	Key unWrapKey(MechanismType mechType, KeyType keyType, CK_BYTE* pWrappedKey, CK_ULONG wrappedKeyLen, void* iv = NULL_PTR, ulong ivLen=0, CK_BBOOL isTokenObject=false);
-	Key unWrapKey2(MechanismType mechType, KeyType keyType, CK_BYTE* pWrappedKey, CK_ULONG wrappedKeyLen, void* iv = NULL_PTR, ulong ivLen=0, CK_BBOOL isTokenObject=false);
-
-	CK_OBJECT_HANDLE 	mObjectHandle;
-	MechanismType 		mMechType;
-	CK_MECHANISM 		mMech;
-	CK_SESSION_HANDLE 	mSessionHndl;
-	CK_RV 				rv;
+	VectorUChar wrap(const MechanismInfo& mech, const Key& other);
+	Key			unwrap(const MechanismInfo& mech, const char* pData, int len);
+	Key			unwrap(const MechanismInfo& mech, const char* pData, int len, const KeyAttribute& attr);
+	Key			unwrap(const MechanismInfo& mech, VectorUChar& data);
+	Key			unwrap(const MechanismInfo& mech, VectorUChar& data, const KeyAttribute& attr);
 
 private:
-	void setMechanism(MechanismType mechType, void *param = NULL_PTR, ulong paramLen=0);
-	Util::Logger* mLog;
+	void 		setMechanism(const MechanismInfo& mInfo);
+
+private:
+	CK_MECHANISM 		_mech;
+	CK_OBJECT_HANDLE	_objectHandle;
+	CK_SESSION_HANDLE	_sessionHandle;
 };
-
-
-struct KeyPair
-{
-	Key publicKey;
-	Key privateKey;
-};
-
-#endif /* KEY_H_ */
+}
+#endif// _KEY_H_
