@@ -16,6 +16,10 @@ find_package(GTest REQUIRED)
 find_package(Cryptoki REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR})
 
+set(Cryptoki_Include "/opt/ETcpsdk/include")
+include_directories(${Cryptoki_Include})
+
+
 add_executable(runUnitTests
     test_safenet.cpp
 )
