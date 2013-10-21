@@ -20,11 +20,10 @@ public:
 	static SafenetHelper* instance();
 	virtual ~SafenetHelper();
 	int login(unsigned long slotId, std::string& pin);
-	int GenerateAES256Key(	std::string& keyName,
-							int& lmkIndex,
-							VectorUChar& key,
-							VectorUChar& kcv,
-							bool isTokenObject = true);
+	int setup();
+	int addLmk();
+	int GenerateAES256Key(VectorUChar& key,
+						  VectorUChar& kcv);
 
 private:
 	SafenetHelperImpl* _pImpl;

@@ -37,12 +37,20 @@ int SafenetHelper::login(unsigned long slotId, std::string& pin)
 	return _pImpl->login(slotId, pin);
 }
 
-int SafenetHelper::GenerateAES256Key(std::string& keyName,
-									 int& lmkIndex,
-									 VectorUChar& key,
-									 VectorUChar& kcv,
-									 bool isTokenObject)
+int SafenetHelper::setup()
 {
-	return _pImpl->GenerateAES256Key(keyName, lmkIndex, key, kcv, isTokenObject);
+	return _pImpl->setup();
+}
+
+int SafenetHelper::addLmk()
+{
+	return _pImpl->addLmk();
+}
+
+
+int SafenetHelper::GenerateAES256Key(VectorUChar& key,
+									 VectorUChar& kcv)
+{
+	return _pImpl->GenerateAES256Key(key, kcv);
 }
 

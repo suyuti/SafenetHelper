@@ -8,22 +8,28 @@
 #define _SAFENET_HELPER_IMPL_H_
 #include <string>
 #include "../include/SafenetHelperTypes.h"
+#include "cryptokiHelper/CryptokiHelper.h"
 
-class CryptokiHelper;
+// TODO forward declaration olmalı
+//class Cryptoki::CryptokiHelper;
 
 class SafenetHelperImpl {
 public:
 	SafenetHelperImpl();
 
+	int setup();
+	int addLmk();
+
 	int login(unsigned long slotId, std::string& pin);
 
-	int GenerateAES256Key(	std::string& keyName,
-							int& lmkIndex,
-							VectorUChar& key,
-							VectorUChar& kcv,
-							bool isTokenObject = true);
+	int GenerateAES256Key(	VectorUChar& key,
+							VectorUChar& kcv);
+protected:
+	int getLastLmkIndex();
+	int setLastLmkIndex(std::string val);
+
 private:
-	CryptokiHelper* _pCryptoki;
+	Cryptoki::CryptokiHelper* _pCryptoki;
 
 };
 
