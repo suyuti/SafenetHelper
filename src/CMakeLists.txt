@@ -15,7 +15,7 @@ set(libSources          SafenetHelper.cpp
                         SafenetHelperImpl.cpp)
 
 set(libSafenet_sources  
-                        #${libSources}
+                        ${libSources}
                         ${utilSources}
                         ${cryptokiSources})
 
