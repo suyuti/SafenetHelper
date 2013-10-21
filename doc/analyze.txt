@@ -1,0 +1,11 @@
+HSM'de AES key üretilir. AES 256'dır.
+Üretilen key session bazlıdır.
+Üretilen key LMK altında encrypt edilerek dışarı verilir. 
+KCV'si de LMK altında encrypt edilerek dışarı verilir.
+
+LMK desteklenmeyen HSM'lerde LMK işlemleri için bir key tanımlanır.
+Bu key export edilemez.
+LMK key'i birden fazla olmalıdır. 
+Bir de aktif LMK'yı gösteren bir işaretçi olmalıdır.
+Bir session keyi üretildiğinde aktif LMK ile şifrelenerek dışarı verilir. Ayrıca aktif lmk işaretçisi de verilir.
+

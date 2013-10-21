@@ -1,0 +1,95 @@
+// GIB HSM DRIVER FUNCTION PROTOTYPES
+
+/// \brief      AES256 key üretir.
+/// Üretilen key ve key kcv'si, Lmk altında 32 byte olarak elde edilir.
+/// Oluşturulan key nesnesi hsm storage da tutulmaz. silinir. 
+///
+/// \param[out] poKeyUnderLmk, Lmk altında AES256 key value 32 byte
+/// \param[out] poKeyKcv, Lmk altında AES256 kcv (key check value) 8 byte
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 GenerateAES256Key(OUC *poKeyUnderLmk, OUC *poKeyKcv);
+
+/// \brief      AES256 key'ini public key altında alarak import eder.
+/// AES256 key'ini public key altından çıkardıktan sonra Lmk altına alarak verir.
+/// 
+///
+/// \param[in] piKeyName, Hsm üzerinde bulunan key'in ismi, key id'si = 0 gelirse name'den bulunacak
+/// \param[in] piKeyId, Hsm üzerinde bulunan key'in id'si
+/// \param[in] piEncryptedAES256Key, public key altında şifreli AES256 key
+/// \param[in] piEncryptedAES256KeyLen, public key altında şifreli AES256 key uzunluğu
+/// \param[out] poAES256KeyUnderLmk, Lmk altına import edilen AES256 key
+/// \param[out] poAES256KeyKcv, Lmk altına import edilen AES256 key kcv'si
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 ImportAES256FromPublicKey(OSC *piKeyName, OSI4 piKeyId, OUC *piEncryptedAES256Key, OSI4 piEncryptedAES256KeyLen, OUC *poAES256KeyUnderLmk, OUC *poAES256KeyKcv);
+
+/// \brief      AES256 key'ini Zmk altında export eder.
+/// Lmk altında bulunan AES256 key'ini, gene Lmk altında bulunan AES256 Zmk key altında export eder.
+///
+/// \param[in] piAES256KeyUnderLmk, Export edilecek key
+/// \param[in] piAES256ZmkKeyUnderLmk, Zmk (zone master key) key; export edilecek key, bu key altına alınacak
+/// \param[out] poAES256KeyUnderZmk, Zmk altında export edilen AES256 key
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 ExportAES256Key(OUC *piAES256KeyUnderLmk, OUC *piAES256ZmkKeyUnderLmk, OUC *poAES256KeyUnderZmk);
+
+/// \brief      AES256 key ile veri şifreler.
+/// Verilan clear data'yı 32 byte'lık AES256 key ile şifreler.
+///
+/// \param[in] piClearData, Şifrelenecek clear data
+/// \param[in] piClearDataLen, Şifrelenecek clear data uzunluğu
+/// \param[in] piAES256KeyUnderLmk, şifreleme işini yapacak lmk altında key
+/// \param[out] poEncryptedData, şifrelenmiş data
+/// \param[out] poEncryptedDataLen, şifrelenmiş data uzunluğu
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 EncryptData(OUC *piClearData, OSI4 piClearDataLen, OUC *piAES256KeyUnderLmk, OUC *poEncryptedData, OSI4 poEncryptedDataLen);
+
+/// \brief      AES256 key ile şifreli veri çözer..
+/// Verilan şifreli data'yı 32 byte'lık AES256 key ile çözer.
+///
+/// \param[in] piEncryptedData, şifrelenmiş data
+/// \param[in] piEncryptedDataLen, şifrelenmiş data uzunluğu
+/// \param[in] piAES256KeyUnderLmk, çözme işini yapacak lmk altında key
+/// \param[out] piClearData, çözülen clear data
+/// \param[out] poClearDataLen, çözülen clear data uzunluğu
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 DecryptData(OUC *piEncryptedData, OSI4 piEncryptedDataLen, OUC *piAES256KeyUnderLmk, OUC *piClearData, OSI4 *poClearDataLen);
+
+/// \brief      SHA256 hash üretir.
+/// Verilan datadan 32 byte'lık SHA256 hash değeri üretir.
+///
+/// \param[in] piData, Hash'i alınacak data
+/// \param[in] piDataLen, Hash'i alınacak data uzunluğu
+/// \param[out] poSHA256, Oluşturulan 32 byte'lık hash
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 GenerateSHA256(OUC *piData, OSI4 *piDataLen, OUC *poSHA256);
+
+/// \brief      RSA Private key signature üretir.
+/// Verilen datayı private key uzunluğunda pad'leyerek (pad algorithm: PKCS11 olması lazım), 
+/// private key ile signature oluşturur.
+///
+/// \param[in] piKeyName, Hsm üzerinde bulunan key'in ismi, key id'si = 0 gelirse name'den bulunacak
+/// \param[in] piKeyId, Hsm üzerinde bulunan key'in id'si
+/// \param[in] piData, imzası üretilecek veri
+/// \param[in] piDataLen, imzası üretilecek verinin uzunluğu
+/// \param[out] poSignature, üretilen imza, private key uzunluğunda olacak.
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 GenerateSignature(OSC *piKeyName, OSI4 piKeyId, OUC *piData, OSI4 piDataLen, OUC *poSignature);
+
+/// \brief      RSA Private key signature'ını doğrular.
+/// Verilen datayı private key uzunluğunda pad'leyerek (pad algorithm: PKCS11 olması lazım), 
+/// private key ile signature oluşturur.
+///
+/// \param[in] piKeyName, Hsm üzerinde bulunan key'in ismi, key id'si = 0 gelirse name'den bulunacak
+/// \param[in] piKeyId, Hsm üzerinde bulunan key'in id'si
+/// \param[in] piSignature, doğrulanacak imza datası
+/// \return başarı değeri (ORC_OKI, ORC_NON, ORC_ERR)
+OSI4 VerifySignature(OSC *piKeyName, OSI4 piKeyId, OUC *piSignature);
+
+
+
+
+
+
+
+
+
+
