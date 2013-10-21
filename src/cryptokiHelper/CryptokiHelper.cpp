@@ -18,7 +18,8 @@ CryptokiHelper* CryptokiHelper::instance()
 	return _instance;
 }
 
-CryptokiHelper::CryptokiHelper()
+CryptokiHelper::CryptokiHelper() :
+	_sessionHandle(CK_INVALID_HANDLE)
 {
 	initialize();
 }
@@ -38,6 +39,9 @@ void CryptokiHelper::initialize()
 
 void CryptokiHelper::open(unsigned long slotId, std::string& pin, int sessionType)
 {
+	if (_sessionHandle != CK_INVALID_HANDLE) {
+		return;
+	}
     int rv = C_OpenSession(slotId, (CK_FLAGS)sessionType, NULL, NULL, &_sessionHandle);
     if (rv != CKR_OK) {
 		throw ExceptionCryptoki(rv, "Cryptoki not initialized", __FILE__, __LINE__);
@@ -47,8 +51,11 @@ void CryptokiHelper::open(unsigned long slotId, std::string& pin, int sessionTyp
 
 void CryptokiHelper::close()
 {
-	C_Logout(_sessionHandle);
-	C_CloseSession(_sessionHandle);
+	if (_sessionHandle != CK_INVALID_HANDLE) {
+		C_Logout(_sessionHandle);
+		C_CloseSession(_sessionHandle);
+		_sessionHandle = CK_INVALID_HANDLE;
+	}
 }
 
 void CryptokiHelper::login(std::string& pin, int userType)
