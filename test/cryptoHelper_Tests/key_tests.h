@@ -12,7 +12,8 @@ public:
     }
 
     virtual void TearDown() {
-		CryptokiHelperTests::CryptokiHelperEx::ClearSlot(1L);
+    	std::string pin("1234");
+		CryptokiHelperTests::CryptokiHelperEx::ClearSlot(1L, pin);
     }
 };
 
