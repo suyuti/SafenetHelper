@@ -11,8 +11,7 @@ class CryptokiHelperTests : public ::testing::Test
 public:
 	class CryptokiHelperEx : public Cryptoki::CryptokiHelper {
 	public:
-		static void ClearSlot(unsigned long slotId) {
-			string pin("1234");
+		static void ClearSlot(unsigned long slotId, std::string& pin) {
 			Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
 			pC->close();
 			pC->open(slotId, pin);
@@ -51,7 +50,8 @@ public:
     }
 
     virtual void TearDown() {
-		CryptokiHelperEx::ClearSlot(1L);
+    	std::string pin("1234");
+		CryptokiHelperEx::ClearSlot(1L, pin);
     }
 };
 
@@ -95,36 +95,42 @@ TEST_F(CryptokiHelperTests, create_key) {
 }
 
 TEST_F(CryptokiHelperTests, create_and_find_token_key) {
-	Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
-	std::string pin("1234");
-	unsigned long slot = 1L;
-	p->open(slot, pin);
-	Cryptoki::KeyAttribute attr;
-	Cryptoki::MechanismInfo mInfo;
-	attr._token = TRUE;
-	mInfo._type = MT_DES2_KEY_GEN;
-	p->createKey("TokenBasedTestKey", attr, mInfo);
-	p->close();
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		p->open(slot, pin);
+		Cryptoki::KeyAttribute attr;
+		Cryptoki::MechanismInfo mInfo;
+		attr._token = TRUE;
+		mInfo._type = MT_DES2_KEY_GEN;
+		p->createKey("TokenBasedTestKey", attr, mInfo);
+		p->close();
 
-	// find
-	p->open(slot, pin);
-	Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "TokenBasedTestKey");
-	p->close();
+		// find
+		p->open(slot, pin);
+		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "TokenBasedTestKey");
+		k.getKcv(); // to avoid not used variable warning
+		p->close();
+	});
 }
 
 TEST_F(CryptokiHelperTests, create_and_find_session_key) {
-	Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
-	std::string pin("1234");
-	unsigned long slot = 1L;
-	p->open(slot, pin);
-	Cryptoki::KeyAttribute attr;
-	Cryptoki::MechanismInfo mInfo;
-	attr._token = TRUE;
-	mInfo._type = MT_DES2_KEY_GEN;
-	p->createKey("SessionBasedTestKey", attr, mInfo);
-	// find
-	Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "SessionBasedTestKey");
-	p->close();
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		p->open(slot, pin);
+		Cryptoki::KeyAttribute attr;
+		Cryptoki::MechanismInfo mInfo;
+		attr._token = TRUE;
+		mInfo._type = MT_DES2_KEY_GEN;
+		p->createKey("SessionBasedTestKey", attr, mInfo);
+		// find
+		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "SessionBasedTestKey");
+		k.getKcv(); // to avoid not used variable warning
+		p->close();
+	});
 }
 
 TEST_F(CryptokiHelperTests, negative_find_key) {
@@ -135,6 +141,7 @@ TEST_F(CryptokiHelperTests, negative_find_key) {
 			unsigned long slot = 1L;
 			p->open(slot, pin);
 			Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "TestKey");
+			k.getKcv(); // to avoid not used variable warning
 			p->close();
 		},
 		ExceptionCryptoki);
@@ -157,6 +164,7 @@ TEST_F(CryptokiHelperTests, negative_create_and_not_found_Session_key) {
 			// find
 			p->open(slot, pin);
 			Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "SessionBasedTestKey");
+			k.getKcv(); // to avoid not used variable warning
 			p->close();
 		},
 		ExceptionCryptoki);
@@ -228,6 +236,7 @@ TEST_F(CryptokiHelperTests, create_and_get_dataObject_session) {
 
 			p->open(slot, pin);
 			Cryptoki::DataObject d = p->getDataByName("TestApp", "TestData_session");
+			d.getValue(); // to avoid not used variable warning
 			p->close();
 		},
 		ExceptionCryptoki);
@@ -285,6 +294,27 @@ TEST_F(CryptokiHelperTests, get_set_dataObject_2) {
 	EXPECT_EQ(0, memcmp(newData, val.data(), sizeof(newData)));
 }
 
+TEST_F(CryptokiHelperTests, get_dataObject_value_as_str) {
+	char data[] = {'1', '2', '3'};
+	std::string expected(data, data + sizeof(data));
+	Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+	std::string pin("1234");
+	unsigned long slot = 1L;
+
+	p->open(slot, pin);
+	Cryptoki::DataAttribute attr;
+	attr._token 	= TRUE;
+	attr._data 		= data;
+	attr._dataLen 	= sizeof(data);
+	p->createData("TestApp", "TestData_token_str", attr);
+	p->close();
+
+	p->open(slot, pin);
+	Cryptoki::DataObject d = p->getDataByName("TestApp", "TestData_token_str");
+	std::string val = d.getValueAsStr();
+	p->close();
+	EXPECT_EQ(0, val.compare(expected));
+}
 
 
 //TEST_F(CryptokiHelperTests, negative_closed) {
