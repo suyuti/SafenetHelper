@@ -26,6 +26,7 @@ private:
 public:
 	DataObject(CK_SESSION_HANDLE sessionHandle);
 	VectorUChar getValue();
+	std::string getValueAsStr();
 	void setValue(const VectorUChar& data);
 	void setValue(const char* pData, int len);
 private:

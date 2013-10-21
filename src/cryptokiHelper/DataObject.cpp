@@ -1,5 +1,6 @@
 #include "DataObject.h"
 #include "ExceptionCryptoki.h"
+#include <iostream>
 
 namespace Cryptoki {
 
@@ -8,6 +9,14 @@ DataObject::DataObject(CK_SESSION_HANDLE sessionHandle)
 	_sessionHandle = sessionHandle;
 }
 
+std::string DataObject::getValueAsStr()
+{
+	VectorUChar val = this->getValue();
+	//std::cout << val.size() << endl;
+	std::string str(val.begin(), val.end());
+
+	return str;
+}
 
 VectorUChar DataObject::getValue()
 {
@@ -28,7 +37,7 @@ VectorUChar DataObject::getValue()
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
 	}
 
-	val.assign((unsigned char*)oTemplate[0].pValue, (unsigned char*)(oTemplate[0].pValue + oTemplate[0].valueLen));
+	val.assign((unsigned char*)oTemplate[0].pValue, (unsigned char*)((unsigned char*)oTemplate[0].pValue + oTemplate[0].valueLen));
 
 	delete(pValue);
 
