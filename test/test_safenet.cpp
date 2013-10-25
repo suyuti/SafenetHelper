@@ -5,9 +5,10 @@
 //---------------------------------------------------------
 #include "gtest/gtest.h"
 
-#include "safenetHelper_tests.h"
 #include "cryptoHelper_Tests/cryptokiHelper_tests.h"
 #include "cryptoHelper_Tests/key_tests.h"
+#include "cryptoHelper_Tests/dataObject_tests.h"
+#include "safenetHelper_tests.h"
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
