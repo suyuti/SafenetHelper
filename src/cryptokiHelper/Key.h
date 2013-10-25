@@ -16,19 +16,26 @@ typedef struct MechanismInfo {
 		_paramLen(0L)
 	{
 	};
+	MechanismInfo(MechanismType _i, void* _p, unsigned long _l) :
+		_type(_i),
+		_param(_p),
+		_paramLen(_l)
+	{
+	};
 } MechanismInfo;
 
 typedef struct KeyAttribute {
-	std::string _label;
-	CK_BBOOL 	_wrap;
-	CK_BBOOL	_unwrap;
-	CK_BBOOL	_encrypt;
-	CK_BBOOL	_decrypt;
-	CK_BBOOL	_sensitive;
-	CK_BBOOL	_private;
-	CK_BBOOL	_extractable;
-	CK_BBOOL	_token;
-	CK_KEY_TYPE	_keyType;
+	std::string 	_label;
+	CK_BBOOL 		_wrap;
+	CK_BBOOL		_unwrap;
+	CK_BBOOL		_encrypt;
+	CK_BBOOL		_decrypt;
+	CK_BBOOL		_sensitive;
+	CK_BBOOL		_private;
+	CK_BBOOL		_extractable;
+	CK_BBOOL		_token;
+	CK_KEY_TYPE		_keyType;
+	CK_OBJECT_CLASS _class;
 
 	KeyAttribute() :
 		_wrap		(TRUE),
@@ -53,7 +60,7 @@ private:
 	Key() {};
 public:
 	Key(CK_SESSION_HANDLE sessionHandle);
-	VectorUChar getKcv();
+	VectorUChar getKcv(MechanismType mt = MT_AES_CBC_PAD);
 
 	VectorUChar encrypt(const MechanismInfo& mech, const VectorUChar& data);
 	VectorUChar encrypt(const MechanismInfo& mech, const char* pData, int len);
@@ -71,6 +78,7 @@ private:
 	void 		setMechanism(const MechanismInfo& mInfo);
 
 private:
+public:
 	CK_MECHANISM 		_mech;
 	CK_OBJECT_HANDLE	_objectHandle;
 	CK_SESSION_HANDLE	_sessionHandle;

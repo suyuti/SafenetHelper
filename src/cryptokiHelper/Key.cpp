@@ -1,7 +1,7 @@
 #include "Key.h"
 #include "cryptoki.h"
 #include "ExceptionCryptoki.h"
-
+#include <iostream>
 namespace Cryptoki {
 
 Key::Key(CK_SESSION_HANDLE sessionHandle)
@@ -9,11 +9,26 @@ Key::Key(CK_SESSION_HANDLE sessionHandle)
 	_sessionHandle = sessionHandle;
 }
 
-VectorUChar Key::getKcv()
+VectorUChar Key::getKcv(MechanismType mech)
 {
-	VectorUChar ret;
-	return ret;
+	char zeroData[16] = {0x00};
+	char iv[16] = {0x00};
+	MechanismInfo mInfo;
+	mInfo._type 	= mech;
+	// TODO Daya iyi bir yontem bulunmali.
+	switch(mech) {
+		case MT_DES3_ECB:
+		break;
+		default:
+			mInfo._param 	= iv;
+			mInfo._paramLen = sizeof(iv);
+	}
+
+	VectorUChar ret = this->encrypt(mInfo, zeroData, sizeof(zeroData));
+	return VectorUChar(ret.begin(), ret.begin() + 3);
 }
+
+
 
 VectorUChar Key::encrypt(const MechanismInfo& mech, const char* pData, int len)
 {
