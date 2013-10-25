@@ -23,6 +23,7 @@ public:
 	Key createKey(const std::string& name, const KeyAttribute& attr, const MechanismInfo& mInfo);
 	Key createKey(const std::string& name, const MechanismInfo& mInfo);
 	Key createKey(const std::string& name);
+	Key createSecretKey(const std::string& name, const KeyAttribute& attr, const MechanismInfo& mInfo);
 	Key getKeyByName(ObjectClass objClass, const std::string& name);
 	void deleteKey(const std::string& name);
 
