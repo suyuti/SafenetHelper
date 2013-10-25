@@ -14,6 +14,7 @@
 #include "../include/SafenetHelperErr.h"
 #include "../src/cryptokiHelper/ExceptionCryptoki.h"
 #include "cryptoHelper_Tests/cryptokiHelper_tests.h"
+#include "cryptoHelper_Tests/cryptokiHelperTestUtil.h"
 
 //-----------------------------------------------------------------------
 // NOTICE
@@ -28,12 +29,8 @@ public:
 
     virtual void TearDown() {
     	std::string pin("1234");
-    	DeleteAllItems(1L, pin);
+    	CryptokiHelperTestUtil::ClearSlot(1L, pin);
     }
-
-	static void DeleteAllItems(unsigned long slotId, std::string& pin) {
-		CryptokiHelperTests::CryptokiHelperEx::ClearSlot(slotId, pin);
-	}
 };
 
 //-----------------------------------------------------------------------
@@ -88,18 +85,21 @@ TEST_F(SafenetHelperTests, can_be_relogin) {
 //-----------------------------------------------------------------------
 
 TEST_F(SafenetHelperTests, create_key_token) {
-//	EXPECT_NO_THROW({
-//		VectorUChar outKey;
-//		VectorUChar outKcv;
-//		int err;
-//
-//		SafenetHelper* pS = SafenetHelper::instance();
-//		err = pS->GenerateAES256Key(outKey, outKcv);
-//
-//		EXPECT_EQ(SUCCESS, err);
-//		EXPECT_TRUE(outKey.size() != 0);
-//		EXPECT_TRUE(outKcv.size() != 0);
-//	});
+	EXPECT_NO_THROW({
+		VectorUChar outKey;
+		VectorUChar outKcv;
+		int err;
+		std::string pin("1234");
+
+		SafenetHelper* pS = SafenetHelper::instance();
+		pS->login(1L, pin);
+		pS->setup();
+		err = pS->GenerateAES256Key(outKey, outKcv);
+
+		EXPECT_EQ(SUCCESS, err);
+		//EXPECT_TRUE(outKey.size() != 0);
+		EXPECT_TRUE(outKcv.size() != 0);
+	});
 }
 
 //-----------------------------------------------------------------------
@@ -119,7 +119,7 @@ TEST_F(SafenetHelperTests, setup) {
 		Cryptoki::DataObject d = pC->getDataByName("GIB", "ActiveLmkIndex");
 		Cryptoki::Key k =  pC->getKeyByName(OC_SECRET_KEY, "LMK_000");
 		std::string data = d.getValueAsStr();
-		k.getKcv();
+		k.getKcv(MT_DES3_ECB); // To avoid get warning message
 
 		std::string expectedIndexData("0000");
 		EXPECT_EQ(0, data.compare(expectedIndexData));
@@ -148,8 +148,8 @@ TEST_F(SafenetHelperTests, addLmk) {
 		std::string dataValue = d.getValueAsStr();
 		expectedData = string("0001");
 		EXPECT_EQ(0, dataValue.compare(expectedData));
-		k.getKcv();
-
+//		k.getKcv();
+//
 		// add again
 		err = pS->addLmk();
 		EXPECT_EQ(SUCCESS, err);
