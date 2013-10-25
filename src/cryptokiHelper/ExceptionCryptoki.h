@@ -17,6 +17,7 @@ class ExceptionCryptoki: public std::exception {
 public:
 	const static ulong ERROR_MEMORY_ALLOCATION = 0x100001A1;
 	const static ulong OBJECT_NOT_FOUND 	   = 0x100001A2;
+	const static ulong ATTRIBUTE_NOT_FOUND 	   = 0x10000012;
 
 	ExceptionCryptoki() throw();
 	virtual ~ExceptionCryptoki() throw();

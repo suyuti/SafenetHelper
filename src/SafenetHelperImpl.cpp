@@ -13,6 +13,7 @@
 #include "SafenetHelperImpl.h"
 #include "../include/SafenetHelperErr.h"
 #include "cryptokiHelper/CryptokiHelper.h"
+#include "cryptokiHelper/ExceptionCryptoki.h"
 
 #define HSM_SLOT_GIB		1
 #define HSM_SLOT_GIB_PIN	"1234"
@@ -24,6 +25,7 @@ SafenetHelperImpl::SafenetHelperImpl()
 {
 	std::string pin(HSM_SLOT_GIB_PIN);
 	_pCryptoki = Cryptoki::CryptokiHelper::instance();
+
 
 //	_pCryptoki = CryptokiHelper::instance();
 //	_pCryptoki->closeSession();
@@ -111,13 +113,30 @@ int SafenetHelperImpl::GenerateAES256Key(VectorUChar& key,
 										 VectorUChar& kcv)
 {
 	int index = this->getLastLmkIndex();
-	char lmkName[32];
-	sprintf(lmkName, GIB_LMK_PREFIX "%03d", index);
-	Cryptoki::Key k = _pCryptoki->getKeyByName(OC_SECRET_KEY, string(lmkName));
-	// lmkIndex'deki lmk keyi var mi
-	// yoksa activeLmk'yi kullan
+	stringstream ss;
+	ss << GIB_LMK_PREFIX << setfill('0') << setw(3) << index;
+	Cryptoki::Key lmk = _pCryptoki->getKeyByName(OC_SECRET_KEY, ss.str());
 
-//	Key _key = _pCryptoki->generateSecretKey(keyName, isTokenObject);
+	std::string aesKeyName;
+	ss.str("");
+	srand(time(NULL) ^ getpid());
+	ss << "AES_" << setfill('0') << setw(4) << random() % 10000 + 1;
+
+	char keyVal[32];
+	Cryptoki::MechanismInfo mInfo;
+	mInfo._param 	= keyVal;
+	mInfo._paramLen = sizeof(keyVal);
+
+	Cryptoki::KeyAttribute kAttr;
+	kAttr._label 	= aesKeyName;
+	kAttr._keyType 	= KT_AES;
+	Cryptoki::Key aesKey = _pCryptoki->createSecretKey(aesKeyName, kAttr, mInfo);
+	kcv = aesKey.getKcv();
+
+	Cryptoki::MechanismInfo mInfoForWrap;
+	mInfoForWrap._type = MT_AES_CBC;
+
+	//key = lmk.wrap(mInfoForWrap, aesKey);
 
 	return SUCCESS;
 }

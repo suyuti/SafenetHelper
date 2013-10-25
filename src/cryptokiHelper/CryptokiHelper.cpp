@@ -106,6 +106,19 @@ Key CryptokiHelper::getKeyByName(ObjectClass objClass, const std::string& name)
         throw ExceptionCryptoki(ExceptionCryptoki::OBJECT_NOT_FOUND, name, __FILE__, __LINE__);
     }
 
+//    CK_ATTRIBUTE at;
+//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 0);
+//    at.type = CKA_ENUM_ATTRIBUTE;
+//    at.pValue = 0;
+//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 1);
+//    if (rv == CKR_ATTRIBUTE_TYPE_INVALID) {
+//        throw ExceptionCryptoki(ExceptionCryptoki::ATTRIBUTE_NOT_FOUND, __FILE__, __LINE__);
+//    }
+//    k._mech.mechanism = (CK_MECHANISM_TYPE)at.pValue;
+    //Cryptoki::MechanismInfo mInfo;
+    //mInfo._type = (int)at.pValue;
+    //k.setMechanism(mInfo);
+
 	return k;
 }
 
@@ -125,18 +138,18 @@ Key CryptokiHelper::createKey(const std::string& name, const MechanismInfo& mech
 Key CryptokiHelper::createKey(const std::string& name, const KeyAttribute& attr, const MechanismInfo& mech)
 {
 	Key k(_sessionHandle);
-
     CK_ATTRIBUTE tpl[] =
     {
         {CKA_LABEL,			(CK_VOID_PTR)name.c_str(), 			name.length()},
-        {CKA_TOKEN,         (CK_VOID_PTR)&attr._token,   		sizeof(CK_BBOOL)},
-        {CKA_WRAP,          (CK_VOID_PTR)&attr._wrap,    		sizeof(CK_BBOOL)},
-        {CKA_ENCRYPT,       (CK_VOID_PTR)&attr._encrypt,    	sizeof(CK_BBOOL)},
-        {CKA_DECRYPT,       (CK_VOID_PTR)&attr._decrypt,    	sizeof(CK_BBOOL)},
-        {CKA_UNWRAP,        (CK_VOID_PTR)&attr._unwrap,    		sizeof(CK_BBOOL)},
-        {CKA_EXTRACTABLE,   (CK_VOID_PTR)&attr._extractable,  	sizeof(CK_BBOOL)},
-        {CKA_SENSITIVE,     (CK_VOID_PTR)&attr._sensitive,    	sizeof(CK_BBOOL)},
-        {CKA_PRIVATE, 		(CK_VOID_PTR)&attr._private, 		sizeof(CK_BBOOL)},
+        {CKA_TOKEN,         (CK_VOID_PTR)&attr._token,   		sizeof(CK_BBOOL			)},
+        {CKA_WRAP,          (CK_VOID_PTR)&attr._wrap,    		sizeof(CK_BBOOL			)},
+        {CKA_ENCRYPT,       (CK_VOID_PTR)&attr._encrypt,    	sizeof(CK_BBOOL			)},
+        {CKA_DECRYPT,       (CK_VOID_PTR)&attr._decrypt,    	sizeof(CK_BBOOL			)},
+        {CKA_UNWRAP,        (CK_VOID_PTR)&attr._unwrap,    		sizeof(CK_BBOOL			)},
+        {CKA_EXTRACTABLE,   (CK_VOID_PTR)&attr._extractable,  	sizeof(CK_BBOOL			)},
+        {CKA_SENSITIVE,     (CK_VOID_PTR)&attr._sensitive,    	sizeof(CK_BBOOL			)},
+        {CKA_PRIVATE, 		(CK_VOID_PTR)&attr._private, 		sizeof(CK_BBOOL			)},
+	    {CKA_CLASS, 		(CK_VOID_PTR)&attr._class, 			sizeof(CK_OBJECT_CLASS	)},
     };
 
     k.setMechanism(mech);
@@ -148,6 +161,30 @@ Key CryptokiHelper::createKey(const std::string& name, const KeyAttribute& attr,
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
 	return k;
 }
+
+Key CryptokiHelper::createSecretKey(const std::string& name, const KeyAttribute& attr, const MechanismInfo& mech)
+{
+	Key k(_sessionHandle);
+
+	CK_OBJECT_CLASS _class = CKO_SECRET_KEY;
+
+	CK_ATTRIBUTE _template[] = {
+		{CKA_CLASS, 	(CK_VOID_PTR)&_class, 				sizeof(_class)			},
+		{CKA_KEY_TYPE, 	(CK_VOID_PTR)&attr._keyType, 		sizeof(attr._keyType)	},
+		{CKA_TOKEN, 	(CK_VOID_PTR)&attr._token, 			sizeof(attr._token)		},
+		{CKA_LABEL, 	(CK_VOID_PTR)attr._label.c_str(), 	attr._label.size()		},
+		{CKA_ENCRYPT, 	(CK_VOID_PTR)&attr._encrypt, 		sizeof(attr._encrypt)	},
+		{CKA_VALUE, 	(CK_VOID_PTR)mech._param, 			mech._paramLen			},
+		{CKA_PRIVATE, 	(CK_VOID_PTR)&attr._private, 		sizeof(attr._private)	},
+	};
+
+	int rv = C_CreateObject(_sessionHandle, _template, sizeof(_template)/sizeof(CK_ATTRIBUTE), &k._objectHandle);
+
+    if (rv != CKR_OK)
+    	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	return k;
+}
+
 
 void CryptokiHelper::deleteKey(const std::string& name)
 {
