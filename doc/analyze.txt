@@ -9,3 +9,78 @@ LMK key'i birden fazla olmalıdır.
 Bir de aktif LMK'yı gösteren bir işaretçi olmalıdır.
 Bir session keyi üretildiğinde aktif LMK ile şifrelenerek dışarı verilir. Ayrıca aktif lmk işaretçisi de verilir.
 
+
+
+
+Key life cycles & Flows
+=======================
+        OKC                             GIB                                   HSM
+ Install:
+ 
+ 1.1.    | Pö/Sö : Create                |                                     |                                // Pö/Sö Terminalde oluşturulur.
+ 1.2.    |                               |                                     | Pg/Sg : Create                 // Pg/Sg HSM'de olusturulur.
+ 1.3.    |                               | <----[Pg]-------------------------- |                                // Pg kart ile export edilir.             (? nasıl export edilecek)
+ 1.4.    | <----[Pg]-------------------- |                                     |                                // Pg OKC'ye tasinir. 
+ 1.5.    | -----[Pö]-------------------> |                                     |                                // Pö GIB'e tasinir
+ 1.6.    | A: FisCalNo                   |                                     |                                // FisCalNo terminalde tanimlidir. Uniquedir.
+
+ 
+ Key Exchange:
+ 
+ 2.1.    | TRMK : Create                 |                                     |                                // POS'da TRMK uretilir. AES256
+ 2.2.    | B: Pg(FisCalNo)               |                                     |                                // 
+ 2.3.    | C: Pg(TRMK)                   |                                     |                                //
+ 2.4.    | D: Sö(C + A)                  |                                     |                                // C+A concat
+ 2.5.    | -----[B,C,D]----------------> |                                     |                                //
+ 2.6.    |                               |                                     |                                // GIB once FisCalNo'yu ogrenmek icin cozduruyor.
+ 2.7.    |                               | -----[B]--------------------------> |                                // getFisCalNo(B)
+ 2.8.    |                               |                                     | B': FisCalNo                   // Sg ile decrypt edilir.
+ 2.9.    |                               | <----[B']-------------------------- |                                // FisCalNo geri dondurulur
+ 2.10.   |                               | D': verify,Pö                       |                                // Pö ile verify edilir.
+ 2.11.   |                               |                                     |                                // GIB'de, FisCalNo terminal tablosuna eklenir 
+ 2.12.   |                               | -----[C]--------------------------> |                                // getTRAEK()
+ 2.13.   |                               |                                     | C' => TRMK                     // Sg ile decrypt edilir.
+ 2.14.   |                               |                                     | E: TRAK create                 // AES256, session based 
+ 2.15.   |                               |                                     | F: TREK create                 // AES256, session based
+ 2.16.   |                               |                                     | G: active Lmk Index            // ActiveLmkIndex dataObject'te tutuluyor.
+ 2.17.   |                               |                                     | H: LMK(TRAK)                   // Bulunan LMK ile wrap yapilir.
+ 2.18.   |                               |                                     | I: LMK(TREK)                   // Bulunan LMK ile wrap yapilir.
+ 2.19.   |                               |                                     | J: Kcv TRAK                    // Kcv hesaplanir.
+ 2.20.   |                               |                                     | K: Kcv TREK                    // Kcv hesaplanir.
+ 2.21.   |                               |                                     | L: TRMK(TRAK)                  // wrap 
+ 2.22.   |                               |                                     | M: TRMK(TREK)                  // wrap
+ 2.23.   |                               |                                     | N: Sg(L+M)                     // sign
+ 2.24.   |                               | <----[G,H,I,J,K,L,M,N]------------- |                                // 
+ 2.25.   |                               |                                     |                                // GIB'de G,H,I,J,K terminal tablosunda tutulur.
+
+ 
+  Transaction:
+ 
+ 3.1.    | O: SHA256(Data)               |                                     |                                //
+ 3.2.    | P: TREK(Data)                 |                                     |                                //
+ 3.3.    | Q: TRAK(O)                    |                                     |                                //
+ 3.4.    | ----[O,P,Q]-----------------> |                                     |                                //
+ 3.5.    |                               | -----[G,H,I,J,K,O,P,Q]------------> |                                // process(G,H,I,J,K,O,P,Q)
+ 3.6.    |                               |                                     | G ile LMK bulunur.             //
+ 3.7.    |                               |                                     | H' => TRAK elde edilir.        // decrypt
+ 3.8.    |                               |                                     | I' => TREK elde edilir.        // decrypt
+ 3.9.    |                               |                                     | P' => Data elde edilir.        // decrypt
+ 3.10.   |                               |                                     | R: SHA256(P')                  // sha hesaplanır
+ 3.11.   |                               |                                     | Q' => SHA256(Data)             // decrypt
+ 3.12.   |                               |                                     | R == Q' ?                      // hesaplanan SHA ile gelen SHA karsilastirilir.
+ 3.13.   |                               |                                     | Data'                          // Data.responseCode = "00"  eklenir.
+ 3.14.   |                               |                                     | S: SHA256(Data')               // sha hesaplanir
+ 3.15.   |                               |                                     | T: TRAK(S)                     // encrypt
+ 3.16.   |                               |                                     | U: TREK(Data')                 // encrypt
+ 3.17.   |                               | <----[Data', T, U]----------------- |                                // GIB aldigi data ile islemlerini yapar.
+ 3.18.   |                               | Onay veriliyorsa                    |                                // 
+ 3.19.   | <----[T,U]------------------- |                                     |                                //
+ 3.20.   |                               | Onay verilmiyorsa                   |                                //
+ 3.21.   |                               | Data''                              |                                // Data'.responseCode guncellir.
+ 3.22.   |                               | -----[Data'']---------------------> |                                // process(Data'')
+ 3.23.   |                               |                                     | V: SHA(Data'')                 // Sha hesaplanir
+ 3.24.   |                               |                                     | W: TRAK(V)                     // encrypt
+ 3.25.   |                               |                                     | X: TREK(Data'')                // encrypt
+ 3.26    |                               | <----[W,X]------------------------- |                                //
+ 3.27    | <----[W,X]------------------- |                                     |                                //
+  
