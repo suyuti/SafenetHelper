@@ -14,6 +14,6 @@
 int main(int argc, char **argv) {
 	SafenetEnviroment env;
   ::testing::InitGoogleTest(&argc, argv);
-  ::testing::Environment* const foo_env = ::testing::AddGlobalTestEnvironment(new SafenetEnviroment);
+  ::testing::AddGlobalTestEnvironment(new SafenetEnviroment);
   return RUN_ALL_TESTS();
 }
