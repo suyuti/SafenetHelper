@@ -9,8 +9,11 @@
 #include "cryptoHelper_Tests/key_tests.h"
 #include "cryptoHelper_Tests/dataObject_tests.h"
 #include "safenetHelper_tests.h"
+#include "safenetEnvironment.h"
 
 int main(int argc, char **argv) {
+	SafenetEnviroment env;
   ::testing::InitGoogleTest(&argc, argv);
+  ::testing::Environment* const foo_env = ::testing::AddGlobalTestEnvironment(new SafenetEnviroment);
   return RUN_ALL_TESTS();
 }
