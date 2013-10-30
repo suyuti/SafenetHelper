@@ -42,7 +42,7 @@ TEST_F(keyTests, create_key) {
 //-----------------------------------------------------------------------------
 
 TEST_F(keyTests, create_and_find_token_key) {
-//	EXPECT_NO_THROW({
+	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
 		std::string pin("1234");
 		unsigned long slot = 1L;
@@ -60,7 +60,7 @@ TEST_F(keyTests, create_and_find_token_key) {
 		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "TokenBasedTestKey");
 		k.getKcv(MT_DES3_ECB); // to avoid from not used variable warning
 		p->close();
-//	});
+	});
 }
 
 //-----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ TEST_F(keyTests, create_and_find_session_key) {
 		p->open(slot, pin);
 		Cryptoki::KeyAttribute attr;
 		Cryptoki::MechanismInfo mInfo;
-		attr._token = TRUE;
+		attr._token = FALSE;
 		mInfo._type = MT_DES2_KEY_GEN;
 		p->createKey("SessionBasedTestKey", attr, mInfo);
 		// find
@@ -275,7 +275,6 @@ TEST_F(keyTests, wrap_unwrap) {
 		EXPECT_EQ(0, memcmp(clearData, decData.data(), decData.size()));
 	});
 }
-
 //-----------------------------------------------------------------------------
 
 TEST_F(keyTests, negative_wrap_not_permitted) {
