@@ -27,7 +27,7 @@ public:
 	int process(const ProcessRequest& inData, ProcessResponse& outData);
 	int process(const VectorUChar inData, ProcessResponse& outData);
 
-
+	// TODO deprecated
 	int GenerateAES256Key(	VectorUChar& key,
 							VectorUChar& kcv);
 protected:
