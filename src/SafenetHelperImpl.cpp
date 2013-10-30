@@ -14,12 +14,8 @@
 #include "../include/SafenetHelperErr.h"
 #include "cryptokiHelper/CryptokiHelper.h"
 #include "cryptokiHelper/ExceptionCryptoki.h"
+#include "../include/SafenetHelperTypes.h"
 
-#define HSM_SLOT_GIB		1
-#define HSM_SLOT_GIB_PIN	"1234"
-#define GIB_ACTIVE_LMK_INDEX	"ActiveLmkIndex"
-#define GIB_LMK_PREFIX			"LMK_"
-#define GIB_APPNAME				"GIB"
 
 SafenetHelperImpl::SafenetHelperImpl()
 {
@@ -78,7 +74,11 @@ int SafenetHelperImpl::setup()
 }
 
 int SafenetHelperImpl::addLmk()
-{
+{//---------------------------------------------------------
+// Mehmet Suyuti Dindar
+// 11.10.2013
+// SmartSoft
+//---------------------------------------------------------
 	int index = this->getLastLmkIndex();
 	index++;
 
@@ -110,7 +110,7 @@ int SafenetHelperImpl::addLmk()
 }
 
 
-
+// deprecated
 int SafenetHelperImpl::GenerateAES256Key(VectorUChar& key,
 										 VectorUChar& kcv)
 {

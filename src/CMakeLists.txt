@@ -12,7 +12,8 @@ set(utilSources         util/Buffer.cpp
                         util/logger.cpp)
 
 set(libSources          SafenetHelper.cpp
-                        SafenetHelperImpl.cpp)
+                        SafenetHelperImpl.cpp
+                        SafenetHelperUtil.cpp)
 
 set(libSafenet_sources  
                         ${libSources}

@@ -7,6 +7,18 @@
 #ifndef _SAFENET_HELPER_TYPES_H_
 #define _SAFENET_HELPER_TYPES_H_
 
+#define HSM_SLOT_GIB			1
+#define HSM_SLOT_GIB_PIN		"1234"
+#define GIB_ACTIVE_LMK_INDEX	"ActiveLmkIndex"
+#define GIB_LMK_PREFIX			"LMK_"
+#define GIB_APPNAME				"GIB"
+#define GIB_PUBLIC_KEY_NAME		"PbK_GIB"
+#define GIB_PRIVATE_KEY_NAME	"PrK_GIB"
+
+//TODO deprecated TRAK and TREK key names will be constructed random. Defined values used for test purposes.
+#define GIB_TREK_NAME			"TREK"
+#define GIB_TRAK_NAME			"TRAK"
+
 #include <vector>
 
 using namespace std;
