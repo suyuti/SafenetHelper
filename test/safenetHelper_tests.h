@@ -164,22 +164,22 @@ TEST_F(SafenetHelperTests, addLmk) {
 
 TEST_F(SafenetHelperTests, getFisCalNo) {
 	EXPECT_NO_THROW({
-//		std::string pin("1234");
-//		SafenetHelper* pS = SafenetHelper::instance();
-//		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
-//		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY, "PbK_CAP");
-//
-//		pS->login(1L, pin);
-//		int err = pS->setup();
-//
-//		// 1. Pg ile enc edilerek PgFisCalNo bulunur.
-//		// 2. getFisCalNo()'ya bu verilir
-//		// 3. Sonucta fsCalNo beklenir.
-//
-//		char PgFisCalNo[256]; // calculate!
-//		char fisCalNo[256];
-//		err = pS->getFisCalNo(PgFisCalNo, fisCalNo);
-//		EXPECT_EQ(SUCCESS, err);
+		char _fisCalNo[] = "1234567890";
+		VectorUChar fisCalNo;
+		fisCalNo.assign(_fisCalNo, _fisCalNo + sizeof(_fisCalNo));
+
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY, "PbK_GIB");
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._type = MT_RSA_PKCS;
+		VectorUChar pgFisCalNo = pubKey.encrypt(mInfo, fisCalNo);
+
+		VectorUChar response;
+		int err = _pSafenet->getFisCalNo(pgFisCalNo, response);
+
+		EXPECT_EQ(SUCCESS, err);
+		EXPECT_TRUE(response.size() > 0);
+		EXPECT_EQ(fisCalNo, response);
 	});
 }
 //-----------------------------------------------------------------------

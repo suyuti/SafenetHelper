@@ -22,6 +22,12 @@ public:
 
 	int login(unsigned long slotId, std::string& pin);
 
+	int getFisCalNo(const VectorUChar inData, VectorUChar& outData);
+	int getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outData);
+	int process(const ProcessRequest& inData, ProcessResponse& outData);
+	int process(const VectorUChar inData, ProcessResponse& outData);
+
+
 	int GenerateAES256Key(	VectorUChar& key,
 							VectorUChar& kcv);
 protected:
