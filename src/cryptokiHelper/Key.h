@@ -56,9 +56,8 @@ class CryptokiHelper;
 class Key
 {
 	friend class CryptokiHelper;
-private:
-	Key() {};
 public:
+	Key() {};
 	Key(CK_SESSION_HANDLE sessionHandle);
 	VectorUChar getKcv(MechanismType mt = MT_AES_CBC_PAD);
 
@@ -83,5 +82,12 @@ public:
 	CK_OBJECT_HANDLE	_objectHandle;
 	CK_SESSION_HANDLE	_sessionHandle;
 };
+
+struct KeyPair
+{
+	Key publicKey;
+	Key privateKey;
+};
+
 }
 #endif// _KEY_H_

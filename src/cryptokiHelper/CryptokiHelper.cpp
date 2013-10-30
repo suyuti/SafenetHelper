@@ -37,7 +37,7 @@ void CryptokiHelper::initialize()
 	}
 }
 
-void CryptokiHelper::open(unsigned long slotId, std::string& pin, int sessionType)
+void CryptokiHelper::open(unsigned long slotId, std::string pin, int sessionType)
 {
 	if (_sessionHandle != CK_INVALID_HANDLE) {
 		return;
@@ -285,4 +285,74 @@ DataObject CryptokiHelper::createData(const std::string& appName, const std::str
 void CryptokiHelper::deleteData(const std::string& name)
 {
 }
+
+KeyPair CryptokiHelper::generateKeyPair(ulong keyLength, std::string pbKeyName, std::string prKeyName, bool isTokenObj)
+{
+    CK_OBJECT_HANDLE hPublicKey;
+    CK_OBJECT_HANDLE hPrivateKey;
+
+    CK_BBOOL isTokenObject = (isTokenObj)? TRUE : FALSE;
+
+	CK_MECHANISM mechanism = {CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0};
+
+	CK_ULONG modulusBits = keyLength;
+	CK_BYTE publicExponent[3] = { 0x01, 0x00, 0x01};
+	CK_BYTE subject[] = "TESTKEY";
+	CK_BYTE id[] = {0x01};
+
+	CK_BBOOL ckTRUE = TRUE;
+	CK_BBOOL ckFALSE = FALSE;
+
+    CK_ATTRIBUTE publicKeyTemplate[] =
+	{
+		{CKA_TOKEN,				&isTokenObject,					sizeof(CK_BBOOL)},
+		{CKA_LABEL, 			(CK_VOID_PTR)pbKeyName.c_str(),	pbKeyName.length()},
+		{CKA_PRIVATE, 			&ckFALSE, 						sizeof(CK_BBOOL)},
+	    {CKA_ENCRYPT, 			&ckTRUE,						sizeof(CK_BBOOL)},
+	    {CKA_VERIFY, 			&ckTRUE,						sizeof(CK_BBOOL)},
+	    {CKA_WRAP, 				&ckTRUE,						sizeof(CK_BBOOL)},
+	    {CKA_MODULUS_BITS, 		&modulusBits,					sizeof(modulusBits)},
+	    {CKA_PUBLIC_EXPONENT, 	publicExponent,					sizeof(publicExponent)},
+	};
+    CK_COUNT pbkTACount = sizeof(publicKeyTemplate)/sizeof(CK_ATTRIBUTE);
+
+
+	CK_ATTRIBUTE privateKeyTemplate[] =
+	{
+		{CKA_TOKEN,             &isTokenObject,    				sizeof(CK_BBOOL)},
+		{CKA_LABEL, 			(CK_VOID_PTR)prKeyName.c_str(), prKeyName.length()},
+	    {CKA_TOKEN, 			&ckTRUE, 						sizeof(CK_BBOOL)},
+	    {CKA_PRIVATE, 			&ckTRUE, 						sizeof(CK_BBOOL)},
+	    {CKA_SUBJECT, 			subject, 						sizeof(subject)},
+	    {CKA_ID, 				id, 							sizeof(id)},
+	    {CKA_SENSITIVE, 		&ckTRUE, 						sizeof(CK_BBOOL)},
+	    {CKA_DECRYPT, 			&ckTRUE, 						sizeof(CK_BBOOL)},
+	    {CKA_SIGN,	 			&ckTRUE, 						sizeof(CK_BBOOL)},
+	    {CKA_UNWRAP, 			&ckTRUE, 						sizeof(CK_BBOOL)},
+		{CKA_EXTRACTABLE,       &ckTRUE,    					sizeof(CK_BBOOL)},
+		{CKA_EXPORTABLE,        &ckTRUE,    					sizeof(CK_BBOOL)},
+		{CKA_MODIFIABLE,      	&ckFALSE,    					sizeof(CK_BBOOL)}
+	};
+	CK_COUNT prkTACount = sizeof(privateKeyTemplate)/sizeof(CK_ATTRIBUTE);
+
+	int rv = C_GenerateKeyPair(_sessionHandle,
+								&mechanism,
+								publicKeyTemplate,
+								pbkTACount,
+								privateKeyTemplate,
+								prkTACount,
+								&hPublicKey,
+								&hPrivateKey);
+    if (rv != CKR_OK)
+    	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+	KeyPair kp;
+	kp.privateKey._sessionHandle = _sessionHandle;
+	kp.publicKey._sessionHandle  = _sessionHandle;
+	kp.privateKey._objectHandle  = hPrivateKey;
+	kp.publicKey._objectHandle   = hPublicKey;
+
+	return kp;
+}
+
 }

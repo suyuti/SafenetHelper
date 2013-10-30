@@ -72,6 +72,8 @@ int SafenetHelperImpl::setup()
 
 	_pCryptoki->createKey(keyName, kAttr, mInfo);
 
+	_pCryptoki->generateKeyPair(2048, "PbK_GIB", "PrK_GIB", true);
+
 	return SUCCESS;
 }
 
