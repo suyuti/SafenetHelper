@@ -15,7 +15,7 @@
 #include "../src/cryptokiHelper/ExceptionCryptoki.h"
 #include "cryptoHelper_Tests/cryptokiHelper_tests.h"
 #include "cryptoHelper_Tests/cryptokiHelperTestUtil.h"
-
+#include "../src/SafenetHelperUtil.h"
 //-----------------------------------------------------------------------
 // NOTICE
 //
@@ -107,15 +107,15 @@ TEST_F(SafenetHelperTests, setup) {
 	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
 
-		Cryptoki::DataObject d = pC->getDataByName("GIB", "ActiveLmkIndex");
+		Cryptoki::DataObject d = pC->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 		std::string data = d.getValueAsStr();
 		//std::string expectedIndexData("0000");
 		//EXPECT_EQ(0, data.compare(expectedIndexData));
 
 
 		Cryptoki::Key k 			= pC->getKeyByName(OC_SECRET_KEY,  "LMK_000");
-		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  "PbK_GIB");
-		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, "PrK_GIB");
+		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
+		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
 
 
 		k.getKcv(MT_DES3_ECB); // To avoid get warning message
@@ -133,7 +133,7 @@ TEST_F(SafenetHelperTests, addLmk) {
 		EXPECT_EQ(SUCCESS, err);
 
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
-		Cryptoki::DataObject d = pC->getDataByName("GIB", "ActiveLmkIndex");
+		Cryptoki::DataObject d = pC->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 		Cryptoki::Key k =  pC->getKeyByName(OC_SECRET_KEY, "LMK_001");
 		std::string dataValue = d.getValueAsStr();
 		expectedData = string("0001");
@@ -143,7 +143,7 @@ TEST_F(SafenetHelperTests, addLmk) {
 		// add again
 		err = _pSafenet->addLmk();
 		EXPECT_EQ(SUCCESS, err);
-		d = pC->getDataByName("GIB", "ActiveLmkIndex");
+		d = pC->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 		dataValue = d.getValueAsStr();
 		expectedData = string("0002");
 		EXPECT_EQ(0, dataValue.compare(expectedData));
@@ -152,7 +152,7 @@ TEST_F(SafenetHelperTests, addLmk) {
 		// add again
 		err = _pSafenet->addLmk();
 		EXPECT_EQ(SUCCESS, err);
-		d = pC->getDataByName("GIB", "ActiveLmkIndex");
+		d = pC->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 		dataValue = d.getValueAsStr();
 		expectedData = string("0003");
 		EXPECT_EQ(0, dataValue.compare(expectedData));
@@ -169,7 +169,7 @@ TEST_F(SafenetHelperTests, getFisCalNo) {
 		fisCalNo.assign(_fisCalNo, _fisCalNo + sizeof(_fisCalNo));
 
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
-		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY, "PbK_GIB");
+		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY, GIB_PUBLIC_KEY_NAME);
 		Cryptoki::MechanismInfo mInfo;
 		mInfo._type = MT_RSA_PKCS;
 		VectorUChar pgFisCalNo = pubKey.encrypt(mInfo, fisCalNo);
@@ -182,7 +182,65 @@ TEST_F(SafenetHelperTests, getFisCalNo) {
 		EXPECT_EQ(fisCalNo, response);
 	});
 }
+
 //-----------------------------------------------------------------------
+
+TEST_F(SafenetHelperTests, getTraek) {
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+
+		char keyVal[32];
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._param 	= keyVal;
+		mInfo._paramLen = sizeof(keyVal);
+
+		Cryptoki::KeyAttribute kAttr;
+		kAttr._label 	= "Test_TRMK";
+		kAttr._keyType 	= KT_AES;
+		kAttr._token 	= FALSE;
+		Cryptoki::Key 	trmk 	= pC->createSecretKey("Test_TRMK", kAttr, mInfo);
+		Cryptoki::Key 	pubGib 	= pC->getKeyByName(OC_PUBLIC_KEY, GIB_PUBLIC_KEY_NAME);
+		VectorUChar 	pgTrmk 	= pubGib.wrap(mInfo, trmk);
+
+		KeyExchangeResponse resp;
+		int err = _pSafenet->getTraek(pgTrmk, resp);
+
+		EXPECT_EQ(SUCCESS, err);
+		EXPECT_TRUE(resp._lmk_TREK.size()  > 0);
+		EXPECT_TRUE(resp._lmk_TRAK.size()  > 0);
+		EXPECT_TRUE(resp._kcv_TREK.size()  > 0);
+		EXPECT_TRUE(resp._kcv_TRAK.size()  > 0);
+		EXPECT_TRUE(resp._TRMK_TREK.size() > 0);
+		EXPECT_TRUE(resp._TRMK_TRAK.size() > 0);
+		EXPECT_TRUE(resp._Signature.size() > 0);
+		EXPECT_EQ(SafenetHelperUtil::getActiveLmkIndex(*pC), resp._lmkIndex);
+
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+
+		Cryptoki::Key trek = pC->getKeyByName(OC_SECRET_KEY, GIB_TRAK_NAME);
+		VectorUChar lmk_trek = lmk.wrap(mInfo, trek);
+		EXPECT_EQ(lmk_trek, resp._lmk_TREK);
+
+		Cryptoki::Key trak = pC->getKeyByName(OC_SECRET_KEY, GIB_TREK_NAME);
+		VectorUChar lmk_trak = lmk.wrap(mInfo, trak);
+		EXPECT_EQ(lmk_trak, resp._lmk_TRAK);
+
+		VectorUChar trekKcv = trek.getKcv();
+		EXPECT_EQ(trekKcv, resp._kcv_TREK);
+
+		VectorUChar trakKcv = trak.getKcv();
+		EXPECT_EQ(trakKcv, resp._kcv_TRAK);
+
+		VectorUChar trmkTrek = trmk.wrap(mInfo, trek);
+		EXPECT_EQ(trmkTrek, resp._TRMK_TREK);
+
+		VectorUChar trmkTrak = trmk.wrap(mInfo, trak);
+		EXPECT_EQ(trmkTrak, resp._TRMK_TRAK);
+
+		// TODO signature check
+	});
+}
+
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
