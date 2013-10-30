@@ -158,3 +158,29 @@ int SafenetHelperImpl::setLastLmkIndex(std::string val)
 	return SUCCESS;
 }
 
+int SafenetHelperImpl::getFisCalNo(const VectorUChar inData, VectorUChar& outData)
+{
+	// TODO implement this
+	throw "Not implemented yet!";
+	return SUCCESS;
+}
+int SafenetHelperImpl::getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outData)
+{
+	// TODO implement this
+	throw "Not implemented yet!";
+	return SUCCESS;
+}
+int SafenetHelperImpl::process(const ProcessRequest& inData, ProcessResponse& outData)
+{
+	// TODO implement this
+	throw "Not implemented yet!";
+	return SUCCESS;
+}
+int SafenetHelperImpl::process(const VectorUChar inData, ProcessResponse& outData)
+{
+	// TODO implement this
+	throw "Not implemented yet!";
+	return SUCCESS;
+}
+
+

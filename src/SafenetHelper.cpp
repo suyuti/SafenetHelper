@@ -54,3 +54,24 @@ int SafenetHelper::GenerateAES256Key(VectorUChar& key,
 	return _pImpl->GenerateAES256Key(key, kcv);
 }
 
+int SafenetHelper::getFisCalNo(const VectorUChar inData, VectorUChar& outData)
+{
+	return _pImpl->getFisCalNo(inData, outData);
+}
+
+int SafenetHelper::getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outData)
+{
+	return _pImpl->getTraek(pgTrmk, outData);
+}
+
+int SafenetHelper::process(const ProcessRequest& inData, ProcessResponse& outData)
+{
+	return _pImpl->process(inData, outData);
+}
+
+int SafenetHelper::process(const VectorUChar inData, ProcessResponse& outData)
+{
+	return _pImpl->process(inData, outData);
+}
+
+
