@@ -14,8 +14,7 @@ public:
     }
 
     virtual void TearDown() {
-    	std::string pin("1234");
-    	CryptokiHelperTestUtil::ClearSlot(1L, pin);
+    	CryptokiHelperTestUtil::ClearSlot(1L, "1234");
     }
 };
 
@@ -30,9 +29,9 @@ TEST_F(CryptokiHelperTests, negative_open_with_wrong_slot) {
 	EXPECT_THROW(
 		{
 			Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
-			std::string pin("1234");
 			unsigned long nonExistentSlot = 99L;
-			p->open(nonExistentSlot, pin);
+			p->close();
+			p->open(nonExistentSlot, "1234");
 			p->close();
 		},
 		ExceptionCryptoki);
