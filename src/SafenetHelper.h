@@ -24,6 +24,7 @@ public:
 	int addLmk();
 	int GenerateAES256Key(VectorUChar& key,
 						  VectorUChar& kcv);
+	int getFisCalNo(const char* pData, char* fisCalNo) { throw "Not implemented yet!";};
 
 private:
 	SafenetHelperImpl* _pImpl;
