@@ -160,8 +160,11 @@ int SafenetHelperImpl::setLastLmkIndex(std::string val)
 
 int SafenetHelperImpl::getFisCalNo(const VectorUChar inData, VectorUChar& outData)
 {
-	// TODO implement this
-	throw "Not implemented yet!";
+	Cryptoki::Key priKey = _pCryptoki->getKeyByName(OC_PRIVATE_KEY,  GIB_PRIVATE_KEY_NAME);
+	Cryptoki::MechanismInfo mInfo;
+	mInfo._type = MT_RSA_PKCS;
+	outData = priKey.decrypt(mInfo, inData);
+
 	return SUCCESS;
 }
 int SafenetHelperImpl::getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outData)
