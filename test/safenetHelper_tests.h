@@ -242,6 +242,57 @@ TEST_F(SafenetHelperTests, getTraek) {
 }
 
 //-----------------------------------------------------------------------
+
+TEST_F(SafenetHelperTests, process_1) {
+	char _data[] = {
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+			0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+	};
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		VectorUChar data;
+		data.assign(_data, _data + sizeof(_data));
+		ProcessRequest req;
+
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+
+		char keyVal[32];
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._param 	= keyVal;
+		mInfo._paramLen = sizeof(keyVal);
+		Cryptoki::KeyAttribute kAttr;
+		kAttr._label 	= "TRAK";
+		kAttr._keyType 	= KT_AES;
+		kAttr._token 	= FALSE;
+		Cryptoki::Key 	trak 	= pC->createSecretKey("TRAK", kAttr, mInfo);
+		kAttr._label 	= "TREK";
+		Cryptoki::Key 	trek 	= pC->createSecretKey("TREK", kAttr, mInfo);
+
+		req._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*pC);
+		req._lmk_TRAK	= lmk.wrap(mInfo, trak);
+		req._lmk_TREK	= lmk.wrap(mInfo, trek);
+		req._kcv_TRAK 	= trak.getKcv();
+		req._kcv_TREK 	= trek.getKcv();
+		req._trek_data 	= trek.encrypt(mInfo, data);
+
+		// TODO
+		// req._sha256Data;
+		// req._trak_sha256Data;
+
+		ProcessResponse resp;
+		int err = _pSafenet->process(req, resp);
+
+		EXPECT_EQ(SUCCESS, err);
+		EXPECT_TRUE(resp._data.size()  				> 0);
+		EXPECT_TRUE(resp._trak_sha256Data.size()  	> 0);
+		EXPECT_TRUE(resp._trek_data.size()  		> 0);
+
+		EXPECT_EQ(data, resp._data);
+		// TODO
+		// check trak_sha256Data
+		// check trek_data
+	});
+}
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
