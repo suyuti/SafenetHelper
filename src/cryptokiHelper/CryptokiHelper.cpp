@@ -31,8 +31,10 @@ CryptokiHelper::~CryptokiHelper()
 
 void CryptokiHelper::initialize()
 {
+	LOG4CXX_INFO(g_logger, "Cryptoki initialize");
 	int rv = C_Initialize(NULL);
 	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Cryptoki not initialized");
 		throw ExceptionCryptoki(rv, "Cryptoki not initialized", __FILE__, __LINE__);
 	}
 }
@@ -44,6 +46,7 @@ void CryptokiHelper::open(unsigned long slotId, std::string pin, int sessionType
 	}
     int rv = C_OpenSession(slotId, (CK_FLAGS)sessionType, NULL, NULL, &_sessionHandle);
     if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Cryptoki not open");
 		throw ExceptionCryptoki(rv, "Cryptoki not initialized", __FILE__, __LINE__);
     }
     login(pin, UT_USER);
@@ -62,12 +65,14 @@ void CryptokiHelper::login(std::string& pin, int userType)
 {
 	int rv = C_Login(_sessionHandle, (CK_USER_TYPE)userType, (CK_CHAR_PTR)pin.c_str(), pin.size());
     if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Could not login");
 		throw ExceptionCryptoki(rv, "", __FILE__, __LINE__);
     }
 }
 
 Key CryptokiHelper::getKeyByName(ObjectClass objClass, const std::string& name)
 {
+	LOG4CXX_TRACE(g_logger, "getKeyByName");
 	Key k(_sessionHandle);
     CK_ATTRIBUTE objectTemplate[] =
     {
@@ -91,33 +96,25 @@ Key CryptokiHelper::getKeyByName(ObjectClass objClass, const std::string& name)
     pAttr->ulValueLen = name.length();;
 
     int rv = C_FindObjectsInit(_sessionHandle, objectTemplate, templateSize);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectInit error");
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     rv = C_FindObjects(_sessionHandle, &(k._objectHandle), numObjectsToFind,  &numObjectsFound);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObject error");
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     rv = C_FindObjectsFinal(_sessionHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectFinal error");
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     if (numObjectsFound == 0) {
+		LOG4CXX_ERROR(g_logger, "Object not found");
         throw ExceptionCryptoki(ExceptionCryptoki::OBJECT_NOT_FOUND, name, __FILE__, __LINE__);
     }
-
-//    CK_ATTRIBUTE at;
-//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 0);
-//    at.type = CKA_ENUM_ATTRIBUTE;
-//    at.pValue = 0;
-//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 1);
-//    if (rv == CKR_ATTRIBUTE_TYPE_INVALID) {
-//        throw ExceptionCryptoki(ExceptionCryptoki::ATTRIBUTE_NOT_FOUND, __FILE__, __LINE__);
-//    }
-//    k._mech.mechanism = (CK_MECHANISM_TYPE)at.pValue;
-    //Cryptoki::MechanismInfo mInfo;
-    //mInfo._type = (int)at.pValue;
-    //k.setMechanism(mInfo);
+	LOG4CXX_TRACE(g_logger, "Object found");
 
 	return k;
 }

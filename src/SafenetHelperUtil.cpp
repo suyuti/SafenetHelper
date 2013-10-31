@@ -17,6 +17,9 @@
 using namespace Cryptoki;
 using namespace std;
 
+log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger("main"));
+
+
 Cryptoki::Key SafenetHelperUtil::getActiveLmk(Cryptoki::CryptokiHelper& session)
 {
 	int lmkIndex = SafenetHelperUtil::getActiveLmkIndex(session);

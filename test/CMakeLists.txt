@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS "-g -Wall")
 enable_testing()
 find_package(GTest REQUIRED)
 find_package(Cryptoki REQUIRED)
+find_package(Log4Cxx REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR})
 
 set(Cryptoki_Include "/opt/ETcpsdk/include")
@@ -30,6 +31,7 @@ target_link_libraries(runUnitTests  ${GTEST_LIBRARY_DEBUG}
                                     cryptoki
                                     ctutil
                                     util
+                                    log4cxx
                                     )
 
 add_test(
