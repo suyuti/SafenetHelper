@@ -16,17 +16,12 @@
 #include "cryptokiHelper/ExceptionCryptoki.h"
 #include "../include/SafenetHelperTypes.h"
 
-
 SafenetHelperImpl::SafenetHelperImpl()
 {
 	std::string pin(HSM_SLOT_GIB_PIN);
+	LOG4CXX_INFO(g_logger, "SafenetHelperImpl constructor");
 	_pCryptoki = Cryptoki::CryptokiHelper::instance();
 
-
-//	_pCryptoki = CryptokiHelper::instance();
-//	_pCryptoki->closeSession();
-//	_pCryptoki->openSession(HSM_SLOT_GIB);
-//	_pCryptoki->login(pin);
 }
 
 int SafenetHelperImpl::login(unsigned long slotId, std::string& pin)

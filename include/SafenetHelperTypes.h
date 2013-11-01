@@ -54,4 +54,13 @@ typedef struct {
 	VectorUChar _trek_data;
 } ProcessResponse;
 
+
+#include <log4cxx/logger.h>
+#include <log4cxx/xml/domconfigurator.h>
+
+extern log4cxx::LoggerPtr g_logger;
+extern log4cxx::LoggerPtr g_loggerCryptoki;
+extern log4cxx::LoggerPtr g_loggerKey;
+extern log4cxx::LoggerPtr g_loggerDataObject;
+
 #endif //_SAFENET_HELPER_TYPES_H_

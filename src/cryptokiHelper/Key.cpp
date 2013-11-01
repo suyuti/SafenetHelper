@@ -11,10 +11,12 @@ Key::Key(CK_SESSION_HANDLE sessionHandle)
 
 VectorUChar Key::getKcv(MechanismType mech)
 {
+	LOG4CXX_INFO(g_loggerKey, "KCV calculating...");
 	char zeroData[16] = {0x00};
 	char iv[16] = {0x00};
 	MechanismInfo mInfo;
 	mInfo._type 	= mech;
+
 	// TODO Daya iyi bir yontem bulunmali.
 	switch(mech) {
 		case MT_DES3_ECB:
@@ -25,6 +27,7 @@ VectorUChar Key::getKcv(MechanismType mech)
 	}
 
 	VectorUChar ret = this->encrypt(mInfo, zeroData, sizeof(zeroData));
+	LOG4CXX_INFO(g_loggerKey, "KCV calculated");
 	return VectorUChar(ret.begin(), ret.begin() + 3);
 }
 
@@ -32,32 +35,38 @@ VectorUChar Key::getKcv(MechanismType mech)
 
 VectorUChar Key::encrypt(const MechanismInfo& mech, const char* pData, int len)
 {
+	LOG4CXX_INFO(g_loggerKey, "Encrypting data...");
 	this->setMechanism(mech);
 
 	VectorUChar vecEncryptedData;
 
     int rv = C_EncryptInit(_sessionHandle, &_mech, _objectHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Encrypting not initialized. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     CK_SIZE encryptedDataLen;
 
     rv = C_Encrypt(_sessionHandle, (unsigned char*)pData, len, NULL, &encryptedDataLen); /* Do a length prediction so we allocate enough memory for the ciphertext */
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Encrypt error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     CK_BYTE *pEncData = (CK_BYTE*) new CK_BYTE[encryptedDataLen];
-    if (pEncData == NULL)
+    if (pEncData == NULL) {
+    	LOG4CXX_ERROR(g_loggerKey, "Memory allocation error");
     	throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
-
+    }
 
     rv = C_Encrypt(_sessionHandle, (unsigned char*)pData, len, pEncData, &encryptedDataLen);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Encrypt error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     vecEncryptedData.assign(pEncData, pEncData+encryptedDataLen);
     delete[] pEncData;
 
+	LOG4CXX_INFO(g_loggerKey, "Encrypt done ");
 
     return vecEncryptedData;
 }
@@ -75,36 +84,49 @@ VectorUChar Key::decrypt(const MechanismInfo& mech, const VectorUChar& data)
 
 VectorUChar Key::decrypt(const MechanismInfo& mech, const char* pData, int len)
 {
+	LOG4CXX_INFO(g_loggerKey, "Decrypting data...");
+
 	this->setMechanism(mech);
 
 	VectorUChar vecDecryptedData;
 
     int rv = C_DecryptInit(_sessionHandle, &_mech, _objectHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Decrypt not initialized. err : " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
     CK_SIZE decryptedDataLen;
 
     rv = C_Decrypt(_sessionHandle, (unsigned char*)pData, len, NULL, &decryptedDataLen);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Decrypt error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
     CK_BYTE *pDecData = (CK_BYTE*) new CK_BYTE[decryptedDataLen];
-    if (pDecData == NULL)
+    if (pDecData == NULL) {
+    	LOG4CXX_ERROR(g_loggerKey, "Memory allocation error.");
     	throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
+    }
 
     rv = C_Decrypt(_sessionHandle, (unsigned char*)pData, len, pDecData, &decryptedDataLen);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Decrypt error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     vecDecryptedData.assign(pDecData, pDecData+decryptedDataLen);
     delete[] pDecData;
+
+    LOG4CXX_INFO(g_loggerKey, "Decrypting done");
 
 	return vecDecryptedData;
 }
 
 VectorUChar Key::wrap(const MechanismInfo& mech, const Key& other)
 {
+	LOG4CXX_INFO(g_loggerKey, "Wrapping data...");
+
 	this->setMechanism(mech);
 
 	VectorUChar vecWrappeddKey;
@@ -112,18 +134,21 @@ VectorUChar Key::wrap(const MechanismInfo& mech, const Key& other)
     CK_ULONG wrappedKeyLen = 0;
 
     int rv = C_WrapKey(_sessionHandle, &_mech, _objectHandle, other._objectHandle, NULL, &wrappedKeyLen); //Wrapped Key uzunlugunu bulmak icin
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "WrapKey error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     CK_BYTE *pWrappedKey = new CK_BYTE[wrappedKeyLen];
 
-    if (pWrappedKey == NULL)
+    if (pWrappedKey == NULL) {
+    	LOG4CXX_ERROR(g_loggerKey, "Wrapped Key NULL");
     	throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
-
+    }
 
     rv = C_WrapKey(_sessionHandle, &_mech, _objectHandle, other._objectHandle, pWrappedKey, &wrappedKeyLen);
 
     if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "Wrap key error. err: " << rv);
     	delete[] pWrappedKey;
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
     }
@@ -131,6 +156,7 @@ VectorUChar Key::wrap(const MechanismInfo& mech, const Key& other)
     vecWrappeddKey.assign(pWrappedKey, pWrappedKey+wrappedKeyLen);
     delete[] pWrappedKey;
 
+	LOG4CXX_INFO(g_loggerKey, "Wrapping done.");
 
     return vecWrappeddKey;
 }
@@ -154,6 +180,7 @@ Key	Key::unwrap(const MechanismInfo& mech, VectorUChar& data, const KeyAttribute
 
 Key	Key::unwrap(const MechanismInfo& mech, const char* pWrappedKey, int wrappedKeyLen, const KeyAttribute& attr)
 {
+	LOG4CXX_INFO(g_loggerKey, "Unwrapping key ...");
 	this->setMechanism(mech);
 
 	CK_OBJECT_HANDLE unwrappedKeyHandle;
@@ -174,20 +201,20 @@ Key	Key::unwrap(const MechanismInfo& mech, const char* pWrappedKey, int wrappedK
     CK_COUNT tplSize = sizeof(tpl)/sizeof(CK_ATTRIBUTE);
 
     if (pWrappedKey == NULL) {
+    	LOG4CXX_ERROR(g_loggerKey, "Wrapped key NULL");
     	throw ExceptionCryptoki(CKR_ARGUMENTS_BAD, __FILE__, __LINE__);
     }
 
-    //if (mObjectHandle == CK_INVALID_HANDLE) {
-    //    throw ExceptionCryptoki(CKR_ARGUMENTS_BAD, __FILE__, __LINE__);
-    //}
-
     int rv = C_UnwrapKey(_sessionHandle, &_mech, _objectHandle, (unsigned char*)pWrappedKey, wrappedKeyLen, tpl, tplSize, &unwrappedKeyHandle);
     if (rv != CKR_OK) {
+    	LOG4CXX_ERROR(g_loggerKey, "UnwrapKey error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
     }
 
 	Key retKey(_sessionHandle);
 	retKey._objectHandle = unwrappedKeyHandle;
+
+	LOG4CXX_INFO(g_loggerKey, "Unwrapping key done.");
 
     return retKey;
 }

@@ -33,20 +33,25 @@ void CryptokiHelper::initialize()
 {
 	int rv = C_Initialize(NULL);
 	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Cryptoki not initialized");
 		throw ExceptionCryptoki(rv, "Cryptoki not initialized", __FILE__, __LINE__);
 	}
+	LOG4CXX_INFO(g_logger, "Cryptoki initialized");
 }
 
 void CryptokiHelper::open(unsigned long slotId, std::string pin, int sessionType)
 {
 	if (_sessionHandle != CK_INVALID_HANDLE) {
+		LOG4CXX_DEBUG(g_logger, "session already open.");
 		return;
 	}
     int rv = C_OpenSession(slotId, (CK_FLAGS)sessionType, NULL, NULL, &_sessionHandle);
     if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Cryptoki not open");
 		throw ExceptionCryptoki(rv, "Cryptoki not initialized", __FILE__, __LINE__);
     }
     login(pin, UT_USER);
+	LOG4CXX_DEBUG(g_logger, "session opened.");
 }
 
 void CryptokiHelper::close()
@@ -55,6 +60,10 @@ void CryptokiHelper::close()
 		C_Logout(_sessionHandle);
 		C_CloseSession(_sessionHandle);
 		_sessionHandle = CK_INVALID_HANDLE;
+		LOG4CXX_DEBUG(g_logger, "session closed.");
+	}
+	else {
+		LOG4CXX_ERROR(g_logger, "session invalid on closing.");
 	}
 }
 
@@ -62,8 +71,10 @@ void CryptokiHelper::login(std::string& pin, int userType)
 {
 	int rv = C_Login(_sessionHandle, (CK_USER_TYPE)userType, (CK_CHAR_PTR)pin.c_str(), pin.size());
     if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Could not login");
 		throw ExceptionCryptoki(rv, "", __FILE__, __LINE__);
     }
+	LOG4CXX_DEBUG(g_logger, "User logged in.");
 }
 
 Key CryptokiHelper::getKeyByName(ObjectClass objClass, const std::string& name)
@@ -91,33 +102,25 @@ Key CryptokiHelper::getKeyByName(ObjectClass objClass, const std::string& name)
     pAttr->ulValueLen = name.length();;
 
     int rv = C_FindObjectsInit(_sessionHandle, objectTemplate, templateSize);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectInit error. " << name);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     rv = C_FindObjects(_sessionHandle, &(k._objectHandle), numObjectsToFind,  &numObjectsFound);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObject error. " << name);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     rv = C_FindObjectsFinal(_sessionHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectFinal error. "  << name);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
     if (numObjectsFound == 0) {
+		LOG4CXX_ERROR(g_logger, "Object not found. " << name);
         throw ExceptionCryptoki(ExceptionCryptoki::OBJECT_NOT_FOUND, name, __FILE__, __LINE__);
     }
-
-//    CK_ATTRIBUTE at;
-//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 0);
-//    at.type = CKA_ENUM_ATTRIBUTE;
-//    at.pValue = 0;
-//    rv = C_GetAttributeValue(_sessionHandle, k._objectHandle, &at, 1);
-//    if (rv == CKR_ATTRIBUTE_TYPE_INVALID) {
-//        throw ExceptionCryptoki(ExceptionCryptoki::ATTRIBUTE_NOT_FOUND, __FILE__, __LINE__);
-//    }
-//    k._mech.mechanism = (CK_MECHANISM_TYPE)at.pValue;
-    //Cryptoki::MechanismInfo mInfo;
-    //mInfo._type = (int)at.pValue;
-    //k.setMechanism(mInfo);
+	LOG4CXX_DEBUG(g_logger, "Object found. " << name);
 
 	return k;
 }
@@ -157,8 +160,11 @@ Key CryptokiHelper::createKey(const std::string& name, const KeyAttribute& attr,
     CK_COUNT tplSize = sizeof(tpl)/sizeof(CK_ATTRIBUTE);
 
     int rv = C_GenerateKey(_sessionHandle, &k._mech, tpl, tplSize, &k._objectHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "Generate key error. " << name << " err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
+	LOG4CXX_DEBUG(g_logger, "Key created. " << name);
 	return k;
 }
 
@@ -180,14 +186,18 @@ Key CryptokiHelper::createSecretKey(const std::string& name, const KeyAttribute&
 
 	int rv = C_CreateObject(_sessionHandle, _template, sizeof(_template)/sizeof(CK_ATTRIBUTE), &k._objectHandle);
 
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "CreateObject error. " << name << ", err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
+	LOG4CXX_DEBUG(g_logger, "Object created. " << name);
 	return k;
 }
 
 
 void CryptokiHelper::deleteKey(const std::string& name)
 {
+	throw "Not implemented yet!";
 }
 
 // Data objects
@@ -224,21 +234,31 @@ DataObject CryptokiHelper::getDataByName(const std::string& appName, const std::
     pAttr->ulValueLen = name.length();
 
     int rv = C_FindObjectsInit(_sessionHandle, objectTemplate, templateSize);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectInit error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
     rv = C_FindObjects(_sessionHandle, &d._objectHandle, numObjectsToFind,  &numObjectsFound);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjects error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
     rv = C_FindObjectsFinal(_sessionHandle);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "FindObjectFinal error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
-    if (numObjectsFound == 0)
+    if (numObjectsFound == 0) {
+		LOG4CXX_ERROR(g_logger, "Object not found. " << appName << " : " << name);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
-	return d;
+    LOG4CXX_DEBUG(g_logger, "Object found." << appName << " : " << name);
+
+    return d;
 }
 
 DataObject CryptokiHelper::createData(const std::string& appName, const std::string& name, const VectorUChar& data)
@@ -263,8 +283,11 @@ DataObject CryptokiHelper::createData(const std::string& appName, const std::str
 	CK_COUNT attributeCount = sizeof(dTemplate)/sizeof(CK_ATTRIBUTE);
 
     int rv = C_CreateObject(_sessionHandle, dTemplate, attributeCount, &d._objectHandle);
-	if (rv != CKR_OK)
+	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "CreateObject error. err: " << rv);
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	}
+	LOG4CXX_DEBUG(g_logger, "Data created. " << appName << " : " << name);
 	return d;
 }
 
@@ -284,6 +307,7 @@ DataObject CryptokiHelper::createData(const std::string& appName, const std::str
 
 void CryptokiHelper::deleteData(const std::string& name)
 {
+	throw "Not implemented yet!";
 }
 
 KeyPair CryptokiHelper::generateKeyPair(ulong keyLength, std::string pbKeyName, std::string prKeyName, bool isTokenObj)
@@ -343,15 +367,17 @@ KeyPair CryptokiHelper::generateKeyPair(ulong keyLength, std::string pbKeyName, 
 								prkTACount,
 								&hPublicKey,
 								&hPrivateKey);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_logger, "GenerateKeyPair error. err: " << rv);
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+    }
 	KeyPair kp;
 	kp.privateKey._sessionHandle = _sessionHandle;
 	kp.publicKey._sessionHandle  = _sessionHandle;
 	kp.privateKey._objectHandle  = hPrivateKey;
 	kp.publicKey._objectHandle   = hPublicKey;
 
+	LOG4CXX_DEBUG(g_logger, "KeyPair generated." << pbKeyName << " : " << prKeyName);
 	return kp;
 }
 
