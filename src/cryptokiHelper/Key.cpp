@@ -28,6 +28,22 @@ VectorUChar Key::getKcv(MechanismType mech)
 	return VectorUChar(ret.begin(), ret.begin() + 3);
 }
 
+bool Key::verify(const MechanismInfo& mech, const VectorUChar& data, const VectorUChar& signature)
+{
+	return this->verify(mech, (char*)data.data(), data.size(), (char*)signature.data(), signature.size());
+}
+
+bool Key::verify(const MechanismInfo& mech, const char* pData, int dataLen, const char* pSignature, int signatureLen)
+{
+	this->setMechanism(mech);
+
+	int rv = C_VerifyInit(_sessionHandle, &_mech, _objectHandle);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+	return C_Verify(_sessionHandle, (unsigned char *)pData, dataLen, (unsigned char *)pSignature, signatureLen) == CKR_OK;
+}
+
 VectorUChar Key::sign(const MechanismInfo& mech, const VectorUChar& data)
 {
 	return this->sign(mech, (char*)data.data(), data.size());
