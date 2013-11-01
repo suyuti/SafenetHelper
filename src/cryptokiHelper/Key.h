@@ -67,6 +67,9 @@ public:
 	VectorUChar decrypt(const MechanismInfo& mech, const VectorUChar& data);
 	VectorUChar decrypt(const MechanismInfo& mech, const char* pData, int len);
 
+	VectorUChar sign(const MechanismInfo& mech, const VectorUChar& data);
+	VectorUChar sign(const MechanismInfo& mech, const char* pData, int len);
+
 	VectorUChar wrap(const MechanismInfo& mech, const Key& other);
 	Key			unwrap(const MechanismInfo& mech, const char* pData, int len);
 	Key			unwrap(const MechanismInfo& mech, const char* pData, int len, const KeyAttribute& attr);
