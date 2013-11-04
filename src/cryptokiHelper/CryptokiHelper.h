@@ -28,6 +28,13 @@ public:
 	Key getKeyByName(ObjectClass objClass, const std::string& name);
 	void deleteKey(const std::string& name);
 
+	// sha sum methods
+	VectorUChar generateSHA256(const char* pData, int len);
+	VectorUChar generateSHA256(const VectorUChar& data);
+
+	VectorUChar generateSHA1(const char* pData, int len);
+	VectorUChar generateSHA1(const VectorUChar& data);
+
 	// Data objects
 	DataObject getDataByName(const std::string& appName, const std::string& name);
 	DataObject createData(const std::string& appName, const std::string& name, const DataAttribute& attr);
@@ -47,6 +54,8 @@ protected:
 	unsigned long _sessionHandle;
 
 private:
+	VectorUChar digest(const MechanismInfo& mInfo, const char* pData, int len);
+
 	static CryptokiHelper* _instance;
 };
 }

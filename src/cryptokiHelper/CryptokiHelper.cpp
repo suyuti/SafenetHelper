@@ -310,6 +310,63 @@ void CryptokiHelper::deleteData(const std::string& name)
 	throw "Not implemented yet!";
 }
 
+VectorUChar CryptokiHelper::generateSHA256(const char* pData, int len)
+{
+    Cryptoki::MechanismInfo mInfo;
+    mInfo._type = MT_SHA256;
+    return this->digest(mInfo, pData, len);
+}
+
+VectorUChar CryptokiHelper::generateSHA256(const VectorUChar& data)
+{
+    return this->generateSHA256((char*)data.data(), data.size());
+}
+
+VectorUChar CryptokiHelper::generateSHA1(const char* pData, int len)
+{
+    Cryptoki::MechanismInfo mInfo;
+    mInfo._type = MT_SHA_1;
+    return this->digest(mInfo, pData, len);
+}
+
+VectorUChar CryptokiHelper::generateSHA1(const VectorUChar& data)
+{
+    return this->generateSHA1((char*)data.data(), data.size());
+}
+
+VectorUChar CryptokiHelper::digest(const MechanismInfo& mInfo, const char* pData, int len)
+{
+    VectorUChar vecDigestData;
+    
+    CK_MECHANISM _mech;
+    _mech.mechanism 	= (CK_MECHANISM_TYPE) mInfo._type;
+    _mech.pParameter 	= mInfo._param;
+    _mech.parameterLen 	= mInfo._paramLen;
+
+    int rv = C_DigestInit(_sessionHandle, &_mech);
+    if (rv != CKR_OK)
+    	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+    CK_SIZE digestLen;
+
+    rv = C_Digest(_sessionHandle, (unsigned char*)pData, len, NULL, &digestLen);
+    if (rv != CKR_OK)
+    	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+    CK_BYTE *pDigestData = (CK_BYTE*) new CK_BYTE[digestLen];
+    if (pDigestData == NULL)
+    	throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
+
+    rv = C_Digest(_sessionHandle, (unsigned char*)pData, len, pDigestData, &digestLen);
+    if (rv != CKR_OK)
+    	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+    vecDigestData.assign(pDigestData, pDigestData+digestLen);
+    delete[] pDigestData;
+
+    return vecDigestData;
+}
+
 KeyPair CryptokiHelper::generateKeyPair(ulong keyLength, std::string pbKeyName, std::string prKeyName, bool isTokenObj)
 {
     CK_OBJECT_HANDLE hPublicKey;
