@@ -16,6 +16,13 @@
 #include "cryptoHelper_Tests/cryptokiHelper_tests.h"
 #include "cryptoHelper_Tests/cryptokiHelperTestUtil.h"
 #include "../src/SafenetHelperUtil.h"
+
+#ifdef __GNUC__
+   #define __UNUSED__ __attribute__((unused))
+#else
+   #define __UNUSED__
+#endif
+
 //-----------------------------------------------------------------------
 // NOTICE
 //
@@ -112,13 +119,9 @@ TEST_F(SafenetHelperTests, setup) {
 		//std::string expectedIndexData("0000");
 		//EXPECT_EQ(0, data.compare(expectedIndexData));
 
-
-		Cryptoki::Key k 	 = pC->getKeyByName(OC_SECRET_KEY,  "LMK_000");
-		//Cryptoki::Key publicKey  = pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
-		//Cryptoki::Key privateKey = pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
-
-
-		k.getKcv(MT_DES3_ECB); // To avoid get warning message
+		Cryptoki::Key k __UNUSED__  = pC->getKeyByName(OC_SECRET_KEY,  "LMK_000");
+		Cryptoki::Key publicKey __UNUSED__ = pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
+		Cryptoki::Key privateKey __UNUSED__ = pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
 	});
 }
 
