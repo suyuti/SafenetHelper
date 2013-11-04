@@ -113,9 +113,9 @@ TEST_F(SafenetHelperTests, setup) {
 		//EXPECT_EQ(0, data.compare(expectedIndexData));
 
 
-		Cryptoki::Key k 			= pC->getKeyByName(OC_SECRET_KEY,  "LMK_000");
-		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
-		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
+		Cryptoki::Key k 	 = pC->getKeyByName(OC_SECRET_KEY,  "LMK_000");
+		//Cryptoki::Key publicKey  = pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
+		//Cryptoki::Key privateKey = pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
 
 
 		k.getKcv(MT_DES3_ECB); // To avoid get warning message
