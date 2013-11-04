@@ -27,32 +27,44 @@ typedef std::vector<unsigned char> VectorUChar;
 typedef std::vector<char> VectorChar;
 
 typedef struct {
-	long 		_lmkIndex;
-	VectorUChar	_lmk_TRAK;
-	VectorUChar	_lmk_TREK;
-	VectorUChar	_kcv_TRAK;
-	VectorUChar	_kcv_TREK;
-	VectorUChar	_TRMK_TRAK;
-	VectorUChar	_TRMK_TREK;
-	VectorUChar	_Signature;
+	long 		_lmkIndex;			// G
+	VectorUChar	_lmk_TRAK;			// H
+	VectorUChar	_lmk_TREK;			// I
+	VectorUChar	_kcv_TRAK;			// J
+	VectorUChar	_kcv_TREK;			// K
+	VectorUChar	_TRMK_TRAK;			// L
+	VectorUChar	_TRMK_TREK;			// M
+	VectorUChar	_Signature;			// N
 } KeyExchangeResponse;
 
 typedef struct {
-	long 		_lmkIndex;
-	VectorUChar	_lmk_TRAK;
-	VectorUChar	_lmk_TREK;
-	VectorUChar	_kcv_TRAK;
-	VectorUChar	_kcv_TREK;
-	VectorUChar _sha256Data;
-	VectorUChar _trek_data;
-	VectorUChar _trak_sha256Data;
-} ProcessRequest;
+	long 		_lmkIndex;			// G
+	VectorUChar	_lmk_TRAK;  		// H
+	VectorUChar	_lmk_TREK;			// I
+	VectorUChar	_kcv_TRAK;			// J
+	VectorUChar	_kcv_TREK;			// K
+	VectorUChar _sha256Data;		// O
+	VectorUChar _trek_data;			// P
+	VectorUChar _trak_sha256Data;	// Q
+} ProcessFirstRequest;
 
 typedef struct {
-	VectorUChar _data;
-	VectorUChar _trak_sha256Data;
-	VectorUChar _trek_data;
-} ProcessResponse;
+	VectorUChar _clearData;			// Data
+} ProcessFirstResponse;
+
+typedef struct {
+	long 		_lmkIndex;			// G
+	VectorUChar	_lmk_TRAK;			// H
+	VectorUChar	_lmk_TREK;			// I
+	VectorUChar	_kcv_TRAK;			// J
+	VectorUChar	_kcv_TREK;			// K
+	VectorUChar	_data;				// S
+} ProcessNextRequest;
+
+typedef struct {
+	VectorUChar _treckData;			// U
+	VectorUChar _trak_sha256_data;	// V
+} ProcessNextResponse;
 
 
 #include <log4cxx/logger.h>

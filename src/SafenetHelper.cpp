@@ -64,14 +64,14 @@ int SafenetHelper::getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outDa
 	return _pImpl->getTraek(pgTrmk, outData);
 }
 
-int SafenetHelper::process(const ProcessRequest& inData, ProcessResponse& outData)
+int SafenetHelper::processFirst(const ProcessFirstRequest& inData, ProcessFirstResponse& outData)
 {
-	return _pImpl->process(inData, outData);
+	return _pImpl->processFirst(inData, outData);
 }
 
-int SafenetHelper::process(const VectorUChar inData, ProcessResponse& outData)
+int SafenetHelper::processNext(const ProcessNextRequest& inData, ProcessNextResponse& outData)
 {
-	return _pImpl->process(inData, outData);
+	return _pImpl->processNext(inData, outData);
 }
 
 

@@ -50,8 +50,8 @@
             <appender-ref ref="appxNormalAppender"/>
             <appender-ref ref="ChainsawAppenderXML"/>
             <appender-ref ref="zeroconf"/>
+            <appender-ref ref="appxConsoleAppender"/>
         -->
-        <appender-ref ref="appxConsoleAppender"/>
         <appender-ref ref="appxLogFileAppenderXml"/>
     </root>
 

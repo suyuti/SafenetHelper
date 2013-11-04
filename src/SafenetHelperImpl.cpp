@@ -35,7 +35,7 @@ int SafenetHelperImpl::setup()
 {
 	std::string name(GIB_ACTIVE_LMK_INDEX);
 	std::string app(GIB_APPNAME);
-	char data[] = {'0','0','0','0'};//{0x00,0x00,0x00};
+	char data[] = {'0','0','0','0'};
 
 	Cryptoki::DataAttribute attr;
 	attr._application 	= app;
@@ -63,17 +63,13 @@ int SafenetHelperImpl::setup()
 
 	_pCryptoki->createKey(keyName, kAttr, mInfo);
 
-	_pCryptoki->generateKeyPair(2048, "PbK_GIB", "PrK_GIB", true);
+	_pCryptoki->generateKeyPair(2048, GIB_PUBLIC_KEY_NAME, GIB_PRIVATE_KEY_NAME, true);
 
 	return SUCCESS;
 }
 
 int SafenetHelperImpl::addLmk()
-{//---------------------------------------------------------
-// Mehmet Suyuti Dindar
-// 11.10.2013
-// SmartSoft
-//---------------------------------------------------------
+{
 	int index = this->getLastLmkIndex();
 	index++;
 
@@ -168,13 +164,17 @@ int SafenetHelperImpl::getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& o
 	throw "Not implemented yet!";
 	return SUCCESS;
 }
-int SafenetHelperImpl::process(const ProcessRequest& inData, ProcessResponse& outData)
+int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFirstResponse& outData)
 {
 	// TODO implement this
 	throw "Not implemented yet!";
 	return SUCCESS;
 }
-int SafenetHelperImpl::process(const VectorUChar inData, ProcessResponse& outData)
+
+/**
+ *
+ * */
+int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNextResponse& outData)
 {
 	// TODO implement this
 	throw "Not implemented yet!";
