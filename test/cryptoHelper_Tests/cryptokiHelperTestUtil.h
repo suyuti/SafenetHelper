@@ -44,7 +44,6 @@ public:
 			}
 			else {
 				CK_ATTRIBUTE cmkTemplate[] = {{CKA_LABEL, NULL, 0}};
-				char label[256];
 				rv = C_GetAttributeValue(pC->getSessionHandle(), h[i], cmkTemplate, 1); // Sadece attribute size öğrenmek için
 				if (rv != CKR_OK) {
 					throw ExceptionCryptoki(rv, __FILE__, __LINE__);
@@ -54,7 +53,7 @@ public:
 
 				rv = C_GetAttributeValue(pC->getSessionHandle(), h[i], cmkTemplate, 1);
 				if (rv != CKR_OK) {
-					delete(cmkTemplate[0].pValue);
+				        free(cmkTemplate[0].pValue);
 					throw ExceptionCryptoki(rv, __FILE__, __LINE__);
 				}
 
@@ -68,7 +67,7 @@ public:
 				else {
 					C_DestroyObject(pC->getSessionHandle(), h[i]);
 				}
-				delete(cmkTemplate[0].pValue);
+				free(cmkTemplate[0].pValue);
 			}
 		}
 		pC->close();

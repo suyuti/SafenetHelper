@@ -109,7 +109,7 @@ TEST_F(dataObjectTests, create_and_get_dataObject_session) {
 
 TEST_F(dataObjectTests, get_set_dataObject) {
 	char data[] = {0x01, 0x23, 0x45};
-	char newData[] = {0x98, 0x76};
+	char newData[] = {0x67, 0x76};
 	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
 		std::string pin("1234");
@@ -137,7 +137,7 @@ TEST_F(dataObjectTests, get_set_dataObject) {
 
 TEST_F(dataObjectTests, get_set_dataObject_2) {
 	char data[] = {0x01, 0x23, 0x45};
-	char newData[] = {0x98, 0x76};
+	char newData[] = {0x67, 0x76};
 	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
 		std::string pin("1234");
