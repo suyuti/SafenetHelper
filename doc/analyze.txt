@@ -28,8 +28,8 @@ Key life cycles & Flows
  Key Exchange:
  
  2.1.    | TRMK : Create                 |                                     |                                // POS'da TRMK uretilir. AES256
- 2.2.    | B: Pg(FisCalNo)               |                                     |                                // 
- 2.3.    | C: Pg(TRMK)                   |                                     |                                //
+ 2.2.    | B: Pg(FisCalNo)               |                                     |                                // FisCalNo Pg ile sifrelenir.
+ 2.3.    | C: Pg(TRMK)                   |                                     |                                // TRMK Pg ile wrap edilir.
  2.4.    | D: Sö(C + A)                  |                                     |                                // C+A concat
  2.5.    | -----[B,C,D]----------------> |                                     |                                //
  2.6.    |                               |                                     |                                // GIB once FisCalNo'yu ogrenmek icin cozduruyor.
@@ -39,19 +39,20 @@ Key life cycles & Flows
  2.10.   |                               | D': verify,Pö                       |                                // Pö ile verify edilir.
  2.11.   |                               |                                     |                                // GIB'de, FisCalNo terminal tablosuna eklenir 
  2.12.   |                               | -----[C]--------------------------> |                                // getTRAEK()
- 2.13.   |                               |                                     | C' => TRMK                     // Sg ile decrypt edilir.
- 2.14.   |                               |                                     | E: TRAK create                 // AES256, session based 
- 2.15.   |                               |                                     | F: TREK create                 // AES256, session based
+ 2.13.   |                               |                                     | C' => TRMK                     // Sg ile unwrap edilir.
+ 2.14.   |                               |                                     | E: TRAK create                 // AES256, session based, key ismi random olmali. 
+ 2.15.   |                               |                                     | F: TREK create                 // AES256, session based, key ismi random olmali.
  2.16.   |                               |                                     | G: active Lmk Index            // ActiveLmkIndex dataObject'te tutuluyor.
- 2.17.   |                               |                                     | H: LMK(TRAK)                   // Bulunan LMK ile wrap yapilir.
- 2.18.   |                               |                                     | I: LMK(TREK)                   // Bulunan LMK ile wrap yapilir.
- 2.19.   |                               |                                     | J: Kcv TRAK                    // Kcv hesaplanir.
- 2.20.   |                               |                                     | K: Kcv TREK                    // Kcv hesaplanir.
- 2.21.   |                               |                                     | L: TRMK(TRAK)                  // wrap 
- 2.22.   |                               |                                     | M: TRMK(TREK)                  // wrap
- 2.23.   |                               |                                     | N: Sg(L+M)                     // sign
- 2.24.   |                               | <----[G,H,I,J,K,L,M,N]------------- |                                // 
- 2.25.   |                               |                                     |                                // GIB'de G,H,I,J,K terminal tablosunda tutulur.
+ 2.17.   |                               |                                     | G.1: Lmk[G]                    // LMK bulunur.
+ 2.18.   |                               |                                     | H: LMK(TRAK)                   // Bulunan LMK ile wrap yapilir.
+ 2.19.   |                               |                                     | I: LMK(TREK)                   // Bulunan LMK ile wrap yapilir.
+ 2.20.   |                               |                                     | J: Kcv of TRAK                 // Kcv hesaplanir.
+ 2.21.   |                               |                                     | K: Kcv of TREK                 // Kcv hesaplanir.
+ 2.22.   |                               |                                     | L: TRMK(TRAK)                  // wrap 
+ 2.23.   |                               |                                     | M: TRMK(TREK)                  // wrap
+ 2.24.   |                               |                                     | N: Sg(L+M)                     // sign
+ 2.25.   |                               | <----[G,H,I,J,K,L,M,N]------------- |                                // GIB'de G,H,I,J,K terminal tablosunda tutulur.
+ 2.26.   | <----[J,K,L,M,N]------------- |                                     |                                // Terminale geri dondurulur. 
 
  
   Transaction:
@@ -60,27 +61,26 @@ Key life cycles & Flows
  3.2.    | P: TREK(Data)                 |                                     |                                //
  3.3.    | Q: TRAK(O)                    |                                     |                                //
  3.4.    | ----[O,P,Q]-----------------> |                                     |                                //
- 3.5.    |                               | -----[G,H,I,J,K,O,P,Q]------------> |                                // process(G,H,I,J,K,O,P,Q)
+ 3.5.    |                               | -----[G,H,I,J,K,O,P,Q]------------> |                                // processFirst(G,H,I,J,K,O,P,Q)
  3.6.    |                               |                                     | G ile LMK bulunur.             //
- 3.7.    |                               |                                     | H' => TRAK elde edilir.        // decrypt
- 3.8.    |                               |                                     | I' => TREK elde edilir.        // decrypt
- 3.9.    |                               |                                     | P' => Data elde edilir.        // decrypt
- 3.10.   |                               |                                     | R: SHA256(P')                  // sha hesaplanır
- 3.11.   |                               |                                     | Q' => SHA256(Data)             // decrypt
- 3.12.   |                               |                                     | R == Q' ?                      // hesaplanan SHA ile gelen SHA karsilastirilir.
- 3.13.   |                               |                                     | Data'                          // Data.responseCode = "00"  eklenir.
- 3.14.   |                               |                                     | S: SHA256(Data')               // sha hesaplanir
- 3.15.   |                               |                                     | T: TRAK(S)                     // encrypt
- 3.16.   |                               |                                     | U: TREK(Data')                 // encrypt
- 3.17.   |                               | <----[Data', T, U]----------------- |                                // GIB aldigi data ile islemlerini yapar.
- 3.18.   |                               | Onay veriliyorsa                    |                                // 
- 3.19.   | <----[T,U]------------------- |                                     |                                //
- 3.20.   |                               | Onay verilmiyorsa                   |                                //
- 3.21.   |                               | Data''                              |                                // Data'.responseCode guncellir.
- 3.22.   |                               | -----[Data'']---------------------> |                                // process(Data'')
- 3.23.   |                               |                                     | V: SHA(Data'')                 // Sha hesaplanir
- 3.24.   |                               |                                     | W: TRAK(V)                     // encrypt
- 3.25.   |                               |                                     | X: TREK(Data'')                // encrypt
- 3.26    |                               | <----[W,X]------------------------- |                                //
- 3.27    | <----[W,X]------------------- |                                     |                                //
-  
+ 3.7.    |                               |                                     | H' => TRAK elde edilir.        // unwrap
+ 3.8.    |                               |                                     | I' => TREK elde edilir.        // unwrap
+ 3.9.    |                               |                                     | Kcv(H') == J ?                 // Hesaplanan H' kcv ile J esit mi?
+ 3.10.   |                               |                                     | Kcv(I') == K ?                 // Hesaplanan I' kcv ile K esit mi?
+ 3.11.   |                               |                                     | P' => Data elde edilir.        // decrypt
+ 3.12.   |                               |                                     | R: SHA256(P')                  // sha hesaplanır
+ 3.13.   |                               |                                     | Q' => SHA256(Data)             // decrypt
+ 3.14.   |                               |                                     | R == Q' ?                      // hesaplanan SHA ile gelen SHA karsilastirilir.
+ 3.15.   |                               | <----[Data]------------------------ |                                // GIB aldigi data ile islemlerini yapar.
+ 3.16.   |                               | S: Data'                            |                                // Islem yapilir. Response data olusturulur.
+ 3.17.   |                               | -----[G,H,I,J,K,S]----------------> |                                // processNext(G,H,I,J,K,S)
+ 3.18.   |                               |                                     | G ile LMK bulunur              // 
+ 3.19.   |                               |                                     | H' => TRAK elde edilir.        // unwrap
+ 3.20.   |                               |                                     | I' => TREK elde edilir.        // unwrap
+ 3.21.   |                               |                                     | Kcv(H') == J ?                 // Hesaplanan H' kcv ile J esit mi?
+ 3.22.   |                               |                                     | Kcv(I') == K ?                 // Hesaplanan I' kcv ile K esit mi?
+ 3.23.   |                               |                                     | T: SHA256(S)                   // Verinin ozeti hesaplanir.
+ 3.24.   |                               |                                     | U: H'(T)                       // encrypt, ozet sifrelenir.
+ 3.25.   |                               |                                     | V: I'(S)                       // encrypt, veri sifrelenir. 
+ 3.26.   |                               | <----[U,V]------------------------- |                                // 
+ 3.27.   | <----[U,V]------------------- |                                     |                                //
