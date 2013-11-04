@@ -406,8 +406,11 @@ TEST_F(keyTests, sign_verify) {
 
 	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		pC->open(slot, pin);
 
-		pC->generateKeyPair(2048, "PbK_TEST", "PrK_TEST", false);
+		pC->generateKeyPair(1024, "PbK_TEST", "PrK_TEST", false);
 
 		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  "PbK_TEST");
 		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, "PrK_TEST");
@@ -418,8 +421,9 @@ TEST_F(keyTests, sign_verify) {
 		VectorUChar sData = privateKey.sign(mInfo, clearData, sizeof(clearData));
 		bool verified = publicKey.verify(mInfo, clearData, sizeof(clearData), (char *)sData.data(), sData.size());
 
-		EXPECT_TRUE(verified == true);
+		pC->close();
 
+		EXPECT_TRUE(verified == true);
 	});
 }
 
