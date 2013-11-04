@@ -358,8 +358,10 @@ VectorUChar CryptokiHelper::digest(const MechanismInfo& mInfo, const char* pData
     	throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
 
     rv = C_Digest(_sessionHandle, (unsigned char*)pData, len, pDigestData, &digestLen);
-    if (rv != CKR_OK)
+    if (rv != CKR_OK) {
+        delete[] pDigestData;
     	throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+    }
 
     vecDigestData.assign(pDigestData, pDigestData+digestLen);
     delete[] pDigestData;
