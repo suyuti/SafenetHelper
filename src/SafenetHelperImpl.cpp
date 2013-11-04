@@ -9,6 +9,8 @@
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "cryptoki.h"
 #include "SafenetHelperImpl.h"
 #include "../include/SafenetHelperErr.h"

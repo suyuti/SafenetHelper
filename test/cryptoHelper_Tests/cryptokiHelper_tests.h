@@ -92,4 +92,54 @@ TEST_F(CryptokiHelperTests, close_twice) {
 		});
 }
 
+//-----------------------------------------------------------------------------
+
+TEST_F(CryptokiHelperTests, sha1sum) {
+
+    char data[] = { 'C', 'R', 'Y', 'P', 'T', 'O', 'K', 'I' };
+
+    char sha1Data[] = { '\xdb', '\x47', '\xc8', '\x57', '\x44', '\x3e', '\x19', '\xab', '\xaa', '\xb5', 
+			'\x9d', '\x54', '\x9a', '\xb0', '\x62', '\x5c', '\x61', '\x58', '\xe2', '\xfd' };
+    
+    EXPECT_NO_THROW(
+		    {
+			Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+			std::string pin("1234");
+			unsigned long slot = 1L;
+			p->open(slot, pin);
+			
+			VectorUChar vecSha1 = p->generateSHA1(data, sizeof(data));
+			
+			p->close();
+
+			EXPECT_EQ(0, memcmp(sha1Data, vecSha1.data(), vecSha1.size()));
+		    });
+}
+
+//-----------------------------------------------------------------------------
+
+TEST_F(CryptokiHelperTests, sha256sum) {
+
+    char data[] = { 'C', 'R', 'Y', 'P', 'T', 'O', 'K', 'I' };
+
+    char sha256Data[] = { '\xcf', '\xb3', '\xe4', '\xb9', '\x1d', '\xd0', '\x40', '\x81', '\x1b', '\xa8', 
+			  '\x3f', '\x24', '\x83', '\xef', '\x16', '\x5b', '\xe1', '\xc0', '\x78', '\x59', 
+			  '\x4d', '\x0b', '\x4a', '\x36', '\x67', '\xe3', '\xbd', '\xbe', '\xc9', '\xb9', 
+			  '\x0a', '\x35' };
+    
+    EXPECT_NO_THROW(
+		    {
+			Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+			std::string pin("1234");
+			unsigned long slot = 1L;
+			p->open(slot, pin);
+			
+			VectorUChar vecSha256 = p->generateSHA256(data, sizeof(data));
+			
+			p->close();
+
+			EXPECT_EQ(0, memcmp(sha256Data, vecSha256.data(), vecSha256.size()));
+		    });
+}
+
 #endif //_CRYPTOKI_HELPER_TESTS_H_
