@@ -410,20 +410,18 @@ TEST_F(keyTests, sign_verify) {
 		unsigned long slot = 1L;
 		pC->open(slot, pin);
 
-		pC->generateKeyPair(1024, "PbK_TEST", "PrK_TEST", false);
-
-		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  "PbK_TEST");
-		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, "PrK_TEST");
+		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
+		Cryptoki::Key priKey = pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
 
 		Cryptoki::MechanismInfo mInfo;
 		mInfo._type = MT_RSA_PKCS;
 
-		VectorUChar sData = privateKey.sign(mInfo, clearData, sizeof(clearData));
-		bool verified = publicKey.verify(mInfo, clearData, sizeof(clearData), (char *)sData.data(), sData.size());
+		VectorUChar sData = priKey.sign(mInfo, clearData, sizeof(clearData));
+		bool verified = pubKey.verify(mInfo, clearData, sizeof(clearData), (char *)sData.data(), sData.size());
 
 		pC->close();
 
-		EXPECT_TRUE(verified == true);
+		EXPECT_TRUE(verified);
 	});
 }
 
