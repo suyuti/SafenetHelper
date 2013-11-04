@@ -395,4 +395,32 @@ TEST_F(keyTests, create_key_by_value) {
 	});
 }
 
+//-----------------------------------------------------------------------------
+
+TEST_F(keyTests, sign_verify) {
+
+	char clearData[] = {
+	  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	  0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
+	};
+
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+
+		pC->generateKeyPair(2048, "PbK_TEST", "PrK_TEST", false);
+
+		Cryptoki::Key publicKey 	= pC->getKeyByName(OC_PUBLIC_KEY,  "PbK_TEST");
+		Cryptoki::Key privateKey 	= pC->getKeyByName(OC_PRIVATE_KEY, "PrK_TEST");
+
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._type = MT_RSA_PKCS;
+
+		VectorUChar sData = privateKey.sign(mInfo, clearData, sizeof(clearData));
+		bool verified = publicKey.verify(mInfo, clearData, sizeof(clearData), (char *)sData.data(), sData.size());
+
+		EXPECT_TRUE(verified == true);
+
+	});
+}
+
 #endif// _KEY_TESTS_H_
