@@ -217,13 +217,13 @@ Key	Key::unwrap(const MechanismInfo& mech, const char* pData, int len)
 	return this->unwrap(mech, pData, len, attr);
 }
 
-Key	Key::unwrap(const MechanismInfo& mech, VectorUChar& data)
+Key	Key::unwrap(const MechanismInfo& mech, const VectorUChar& data)
 {
 	KeyAttribute attr;
 	return this->unwrap(mech, data, attr);
 }
 
-Key	Key::unwrap(const MechanismInfo& mech, VectorUChar& data, const KeyAttribute& attr)
+Key	Key::unwrap(const MechanismInfo& mech, const VectorUChar& data, const KeyAttribute& attr)
 {
 	return this->unwrap(mech, (char*)data.data(), data.size(), attr);
 }

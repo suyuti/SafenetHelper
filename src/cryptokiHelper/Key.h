@@ -76,8 +76,8 @@ public:
 	VectorUChar wrap(const MechanismInfo& mech, const Key& other);
 	Key			unwrap(const MechanismInfo& mech, const char* pData, int len);
 	Key			unwrap(const MechanismInfo& mech, const char* pData, int len, const KeyAttribute& attr);
-	Key			unwrap(const MechanismInfo& mech, VectorUChar& data);
-	Key			unwrap(const MechanismInfo& mech, VectorUChar& data, const KeyAttribute& attr);
+	Key			unwrap(const MechanismInfo& mech, const VectorUChar& data);
+	Key			unwrap(const MechanismInfo& mech, const VectorUChar& data, const KeyAttribute& attr);
 
 private:
 	void 		setMechanism(const MechanismInfo& mInfo);
