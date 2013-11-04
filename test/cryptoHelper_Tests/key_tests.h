@@ -395,4 +395,34 @@ TEST_F(keyTests, create_key_by_value) {
 	});
 }
 
+//-----------------------------------------------------------------------------
+
+TEST_F(keyTests, sign_verify) {
+
+	char clearData[] = {
+	  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	  0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
+	};
+
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		pC->open(slot, pin);
+
+		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY,  GIB_PUBLIC_KEY_NAME);
+		Cryptoki::Key priKey = pC->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
+
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._type = MT_RSA_PKCS;
+
+		VectorUChar sData = priKey.sign(mInfo, clearData, sizeof(clearData));
+		bool verified = pubKey.verify(mInfo, clearData, sizeof(clearData), (char *)sData.data(), sData.size());
+
+		pC->close();
+
+		EXPECT_TRUE(verified);
+	});
+}
+
 #endif// _KEY_TESTS_H_

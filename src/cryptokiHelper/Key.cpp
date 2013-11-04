@@ -31,7 +31,57 @@ VectorUChar Key::getKcv(MechanismType mech)
 	return VectorUChar(ret.begin(), ret.begin() + 3);
 }
 
+bool Key::verify(const MechanismInfo& mech, const VectorUChar& data, const VectorUChar& signature)
+{
+	return this->verify(mech, (char*)data.data(), data.size(), (char*)signature.data(), signature.size());
+}
 
+bool Key::verify(const MechanismInfo& mech, const char* pData, int dataLen, const char* pSignature, int signatureLen)
+{
+	this->setMechanism(mech);
+
+	int rv = C_VerifyInit(_sessionHandle, &_mech, _objectHandle);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+	return C_Verify(_sessionHandle, (unsigned char *)pData, dataLen, (unsigned char *)pSignature, signatureLen) == CKR_OK;
+}
+
+VectorUChar Key::sign(const MechanismInfo& mech, const VectorUChar& data)
+{
+	return this->sign(mech, (char*)data.data(), data.size());
+}
+
+VectorUChar Key::sign(const MechanismInfo& mech, const char* pData, int len)
+{
+	this->setMechanism(mech);
+
+	VectorUChar vecSignData;
+
+	int rv = C_SignInit(_sessionHandle, &_mech, _objectHandle);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+	CK_SIZE signDataLen;
+	
+	/* Do a length prediction so we allocate enough memory for the signature */
+	rv = C_Sign(_sessionHandle, (unsigned char *)pData, len, NULL, &signDataLen);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	
+	CK_BYTE *pSignData = (CK_BYTE*) new CK_BYTE[signDataLen];
+	if (pSignData == NULL)
+		throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
+	
+	rv = C_Sign(_sessionHandle, (unsigned char *)pData, len, pSignData, &signDataLen);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	
+	vecSignData.assign(pSignData, pSignData+signDataLen);
+	delete[] pSignData;
+	
+	return vecSignData;
+}
 
 VectorUChar Key::encrypt(const MechanismInfo& mech, const char* pData, int len)
 {
