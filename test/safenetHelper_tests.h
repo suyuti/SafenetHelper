@@ -243,7 +243,7 @@ TEST_F(SafenetHelperTests, getTraek) {
 
 //-----------------------------------------------------------------------
 
-TEST_F(SafenetHelperTests, process_1) {
+TEST_F(SafenetHelperTests, processFirst) {
 	char _data[] = {
 			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 			0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
@@ -252,7 +252,7 @@ TEST_F(SafenetHelperTests, process_1) {
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
 		VectorUChar data;
 		data.assign(_data, _data + sizeof(_data));
-		ProcessRequest req;
+		ProcessFirstRequest req;
 
 		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
 
@@ -279,21 +279,85 @@ TEST_F(SafenetHelperTests, process_1) {
 		// req._sha256Data;
 		// req._trak_sha256Data;
 
-		ProcessResponse resp;
-		int err = _pSafenet->process(req, resp);
+		ProcessFirstResponse resp;
+		int err = _pSafenet->processFirst(req, resp);
 
 		EXPECT_EQ(SUCCESS, err);
-		EXPECT_TRUE(resp._data.size()  				> 0);
-		EXPECT_TRUE(resp._trak_sha256Data.size()  	> 0);
-		EXPECT_TRUE(resp._trek_data.size()  		> 0);
+		EXPECT_TRUE(resp._clearData.size()  				> 0);
 
-		EXPECT_EQ(data, resp._data);
+		EXPECT_EQ(data, resp._clearData);
 		// TODO
 		// check trak_sha256Data
 		// check trek_data
 	});
 }
+
 //-----------------------------------------------------------------------
+/**
+ * inputs:  G,H,I,J,K,S
+ * */
+
+TEST_F(SafenetHelperTests, processNext) {
+	char _data[] = {
+			'T','H','I','S',' ',
+			'I','S',' ',
+			'T','E','S','T',' ',
+			'D','A','T','A',' ',
+			'N','O','T',' ',
+			'S','P','A','R','T','A',
+	};
+	char _calculatedSha256[] = {
+			0xd0, 0xf9, 0x5c, 0x6e, 0x0c, 0xc9, 0xa0, 0x85,
+			0x3c, 0xc9, 0x26, 0xa3, 0x3f, 0x7f, 0xb2, 0x50,
+			0x30, 0xf1, 0x3c, 0xf4, 0xf3, 0xde, 0x04, 0x15,
+			0x96, 0xf9, 0x7a, 0x22, 0x3f, 0x6e, 0xe9, 0x8b
+	};
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		VectorUChar data;
+		data.assign(_data, _data + sizeof(_data));
+
+		VectorUChar calculatedSha256;
+		calculatedSha256.assign(_calculatedSha256, _calculatedSha256 + sizeof(_calculatedSha256));
+		ProcessNextRequest req;
+
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+
+		char keyVal[32];
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._param 	= keyVal;
+		mInfo._paramLen = sizeof(keyVal);
+		Cryptoki::KeyAttribute kAttr;
+		kAttr._label 	= "TRAK";
+		kAttr._keyType 	= KT_AES;
+		kAttr._token 	= FALSE;
+		Cryptoki::Key 	trak 	= pC->createSecretKey("Test_TRAK", kAttr, mInfo);
+		kAttr._label 	= "TREK";
+		Cryptoki::Key 	trek 	= pC->createSecretKey("Test_TREK", kAttr, mInfo);
+
+		req._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*pC);
+		req._lmk_TRAK	= lmk.wrap(mInfo, trak);
+		req._lmk_TREK	= lmk.wrap(mInfo, trek);
+		req._kcv_TRAK 	= trak.getKcv();
+		req._kcv_TREK 	= trek.getKcv();
+		req._data		= data;
+
+		ProcessNextResponse resp;
+		int err = _pSafenet->processNext(req, resp);
+
+		EXPECT_EQ(SUCCESS, err);
+		EXPECT_TRUE(resp._trak_sha256_data.size()  	> 0);
+		EXPECT_TRUE(resp._treckData.size()  		> 0);
+
+		VectorUChar calcdTreckData = trek.encrypt(mInfo, data);
+		EXPECT_EQ(calcdTreckData, resp._treckData);
+
+		VectorUChar calcdTrakSha256Data = trak.encrypt(mInfo, calculatedSha256);
+		EXPECT_EQ(calcdTrakSha256Data, resp._trak_sha256_data);
+
+		// TODO
+	});
+}
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
