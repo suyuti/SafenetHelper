@@ -315,8 +315,48 @@ int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFi
  * */
 int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNextResponse& outData)
 {
-	// TODO implement this
-	throw "Not implemented yet!";
+// 3.18. G ile LMK bulunur
+	Cryptoki::Key lmk = SafenetHelperUtil::getLmk(*_pCryptoki, inData._lmkIndex);
+
+// 3.19. H' => TRAK elde edilir.   Unwrap
+	Cryptoki::MechanismInfo mInfo;
+	Cryptoki::KeyAttribute kAttr;
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0L;
+	mInfo._type 	= MT_DES3_ECB;
+	kAttr._keyType 	= KT_AES;
+	Cryptoki::Key trak = lmk.unwrap(mInfo, inData._lmk_TRAK, kAttr);
+
+// 3.20. I' => TREK elde edilir.   Unwrap
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0L;
+	mInfo._type 	= MT_DES3_ECB;
+	kAttr._keyType 	= KT_AES;
+	Cryptoki::Key trek = lmk.unwrap(mInfo, inData._lmk_TREK, kAttr);
+
+// 3.21. Kcv(H') == J ?            Hesaplanan H' kcv ile J esit mi?
+	VectorUChar kcvTRAK = trak.getKcv();
+	if (kcvTRAK != inData._kcv_TRAK) {
+		// TODO
+	}
+
+// 3.22. Kcv(I') == K ?            Hesaplanan I' kcv ile K esit mi?
+	VectorUChar kcvTREK = trek.getKcv();
+	if (kcvTREK != inData._kcv_TREK) {
+		// TODO
+	}
+// 3.23. T: SHA256(S)              Verinin ozeti hesaplanir.
+	VectorUChar calcdSha256 = _pCryptoki->generateSHA256(inData._data);
+
+// 3.24. U: H'(T)                  Encrypt, ozet sifrelenir.
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0L;
+	mInfo._type 	= MT_AES_ECB;
+	outData._trak_sha256_data = trak.encrypt(mInfo, calcdSha256);
+
+// 3.25. V: I'(S)                  Encrypt, veri sifrelenir.
+	outData._treckData = trek.encrypt(mInfo, inData._data);
+
 	return SUCCESS;
 }
 
