@@ -252,10 +252,61 @@ int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& 
 
 	return SUCCESS;
 }
+
+
 int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFirstResponse& outData)
 {
-	// TODO implement this
-	throw "Not implemented yet!";
+// 3.6. G ile LMK bulunur.
+	Cryptoki::Key lmk = SafenetHelperUtil::getLmk(*_pCryptoki, inData._lmkIndex);
+
+// 3.7. H' => TRAK elde edilir.   Unwrap
+	Cryptoki::MechanismInfo mInfo;
+	Cryptoki::KeyAttribute kAttr;
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0L;
+	mInfo._type 	= MT_DES3_ECB;
+	kAttr._keyType 	= KT_AES;
+	Cryptoki::Key trak = lmk.unwrap(mInfo, inData._lmk_TRAK, kAttr);
+
+// 3.8. I' => TREK elde edilir.   Unwrap
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0L;
+	mInfo._type 	= MT_DES3_ECB;
+	kAttr._keyType 	= KT_AES;
+	Cryptoki::Key trek = lmk.unwrap(mInfo, inData._lmk_TREK, kAttr);
+
+// 3.9. Kcv(H') == J ?  .         Hesaplanan H' kcv ile J esit mi?
+	VectorUChar kcvTRAK = trak.getKcv();
+	if (kcvTRAK != inData._kcv_TRAK) {
+		// TODO
+	}
+
+// 3.10. Kcv(I') == K ?           Hesaplanan I' kcv ile K esit mi?
+	VectorUChar kcvTREK = trek.getKcv();
+	if (kcvTREK != inData._kcv_TREK) {
+		// TODO
+	}
+
+// 3.11. P' => Data elde edilir.  Decrypt
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0;
+	mInfo._type 	= MT_AES_ECB;
+	outData._clearData = trek.decrypt(mInfo, inData._trek_data);
+
+// 3.12. R: SHA256(P')            Sha hesaplanır
+	VectorUChar calcdSha256 = _pCryptoki->generateSHA256(outData._clearData);
+
+// 3.13. Q' => SHA256(Data)       Decrypt
+	mInfo._param 	= NULL;
+	mInfo._paramLen = 0;
+	mInfo._type 	= MT_AES_ECB;
+	VectorUChar inSha256 = trak.decrypt(mInfo, inData._trak_sha256Data);
+
+// 3.14. R == Q' ?                Hesaplanan SHA ile gelen SHA karsilastirilir.
+	if (calcdSha256 != inSha256) {
+		// TODO
+	}
+
 	return SUCCESS;
 }
 
