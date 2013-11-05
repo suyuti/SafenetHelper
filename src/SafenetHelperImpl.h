@@ -23,7 +23,7 @@ public:
 	int login(unsigned long slotId, std::string& pin);
 
 	int getFisCalNo(const VectorUChar inData, VectorUChar& outData);
-	int getTraek(const VectorUChar pgTrmk, KeyExchangeResponse& outData);
+	int getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& outData);
 	int processFirst(const ProcessFirstRequest& inData, ProcessFirstResponse& outData);
 	int processNext(const ProcessNextRequest& inData, ProcessNextResponse& outData);
 
