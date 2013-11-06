@@ -35,7 +35,7 @@ void sleep(int seconds)
 bool initialize()
 {
 	try {
-	  pC = Cryptoki::CryptokiHelper::instance();
+		pC = Cryptoki::CryptokiHelper::instance();
 	} catch(ExceptionCryptoki &ex) {
 		return false;
 	}
