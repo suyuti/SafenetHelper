@@ -12,18 +12,18 @@ using namespace std;
 void clearScreen()
 {
 #ifdef WINDOWS
-    std::system("CLS");
+	std::system("CLS");
 #else
-    std::system("clear");
+	std::system("clear");
 #endif
 }
 
 void sleep(int seconds)
 {
 #ifdef WINDOWS
-  Sleep(seconds * 1000);
+	Sleep(seconds * 1000);
 #else
-  usleep(seconds * 1000 * 1000);   // usleep takes sleep time in us
+	usleep(seconds * 1000 * 1000);
 #endif
 }
 
@@ -39,20 +39,20 @@ bool doAddLMK()
 	return false;
 }
 
-// 3.  Get Active LMK
-bool doGetActiveLMK()
+// 3.  Get Active LMK Index
+bool doGetActiveLMKIndex()
 {
 	return false;
 }
 
-// 4.  Get KCV
+// 4.  Get KCV of Active LMK
 bool doGetKCV()
 {
 	return false;
 }
 
-// 5.  Export Ps
-bool doExportPs()
+// 5.  Export Public Key
+bool doExportPublicKey()
 {
 	return false;
 }
@@ -80,9 +80,9 @@ int main(int argc, char **argv)
 	    cout << "  ===========================\n";
 	    cout << "  1.  Setup\n";
 	    cout << "  2.  Add LMK\n";
-	    cout << "  3.  Get Active LMK\n";
-	    cout << "  4.  Get KCV\n";
-	    cout << "  5.  Export Ps\n";
+	    cout << "  3.  Get Active LMK Index\n";
+	    cout << "  4.  Get KCV of Active LMK\n";
+	    cout << "  5.  Export Public Key\n";
 	    cout << "  6.  Backup\n";
 	    cout << "  7.  Restore\n";
 	    cout << "  8.  Exit\n";
@@ -108,14 +108,24 @@ int main(int argc, char **argv)
 		    cout << "\n";
 		    break;
 		case '3':
-		    if (doExportPs())
-			    cout << "Export Ps success..\n";
-		    else
-			    cout << "Export Ps failed..\n";
+		    doGetActiveLMKIndex();
 		    cout << "\n";
 		    break;
 
 		case '4':
+		    doGetKCV();
+		    cout << "\n";
+		    break;
+
+		case '5':
+		    if (doExportPublicKey())
+			    cout << "Public Key Export success..\n";
+		    else
+			    cout << "Public Key Export failed..\n";
+		    cout << "\n";
+		    break;
+
+		case '6':
 		    if (doBackup())
 			    cout << "Backup success..\n";
 		    else
@@ -123,7 +133,7 @@ int main(int argc, char **argv)
 		    cout << "\n";
 		    break;
 
-		case '5':
+		case '7':
 		    if (doRestore())
 			    cout << "Restore success..\n";
 		    else
@@ -131,7 +141,7 @@ int main(int argc, char **argv)
 		    cout << "\n";
 		    break;
 
-		case '6':
+	        case '8':
 		    cout << "Exit\n";
 		    exit(0);
 		    break;
