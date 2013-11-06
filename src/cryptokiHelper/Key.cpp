@@ -14,14 +14,18 @@ Key::Key(CK_SESSION_HANDLE sessionHandle)
 VectorUChar Key::getKcv(MechanismType mech)
 {
 	LOG4CXX_INFO(g_loggerKey, "KCV calculating...");
-	char zeroData[16] = {0x00};
-	char iv[16] = {0x00};
-	MechanismInfo mInfo;
-	mInfo._type 	= mech;
 
-	// TODO Daya iyi bir yontem bulunmali.
+	char 			zeroData[16] = {0x00};
+	char 			iv[16] 		 = {0x00};
+	MechanismInfo 	mInfo;
+
+	mInfo._type = mech;
+
+	// TODO Daya iyi bir yontem bulunmali. Key tipi cagiran tarafindan soyleniyor. Attributedan alinmali.
 	switch(mech) {
 		case MT_DES3_ECB:
+			mInfo._param 	= NULL;
+			mInfo._paramLen = 0L;
 		break;
 		default:
 			mInfo._param 	= iv;
