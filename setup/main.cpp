@@ -7,7 +7,12 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "../src/cryptokiHelper/CryptokiHelper.h"
+#include "../src/cryptokiHelper/ExceptionCryptoki.h"
+
 using namespace std;
+
+Cryptoki::CryptokiHelper *pC = NULL;
 
 void clearScreen()
 {
@@ -25,6 +30,17 @@ void sleep(int seconds)
 #else
 	usleep(seconds * 1000 * 1000);
 #endif
+}
+
+bool initialize()
+{
+	try {
+	  pC = Cryptoki::CryptokiHelper::instance();
+	} catch(ExceptionCryptoki &ex) {
+		return false;
+	}
+	
+	return true;
 }
 
 // 1. Setup
@@ -73,6 +89,11 @@ int main(int argc, char **argv)
 {
     char selection = 0;
 
+    if (!initialize()) {
+	    std::cout << "Cryptoki initialize failed." << std::endl;
+	    return 1;
+    }
+    
     do {
 	    clearScreen();
 	
