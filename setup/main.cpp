@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     do {
 	    clearScreen();
 	
-	    cout << "  GIB GSM Setup Menu\n";
+	    cout << "  GIB HSM Setup Menu\n";
 	    cout << "  ===========================\n";
 	    cout << "  1.  Setup\n";
 	    cout << "  2.  Add LMK\n";
