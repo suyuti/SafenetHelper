@@ -1,5 +1,5 @@
 #ifdef WINDOWS
-#inlcude <windows.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif
