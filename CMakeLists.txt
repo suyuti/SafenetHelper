@@ -10,4 +10,6 @@ project(SafenetHelper)
 
 add_subdirectory(test)
 add_subdirectory(src)
+add_subdirectory(setup)
+
 
