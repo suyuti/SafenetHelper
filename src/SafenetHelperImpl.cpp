@@ -53,18 +53,19 @@ int SafenetHelperImpl::setup()
 	Cryptoki::MechanismInfo mInfo;
 	mInfo._type = MT_DES2_KEY_GEN;
 
-	Cryptoki::KeyAttribute kAttr;
-	kAttr._decrypt 		= TRUE;
-	kAttr._encrypt 		= TRUE;
-	kAttr._extractable 	= FALSE;
-	kAttr._keyType 		= KT_DES2;
-	kAttr._private 		= TRUE;
-	kAttr._sensitive 	= TRUE;
-	kAttr._token 		= TRUE;
-	kAttr._unwrap 		= TRUE;
-	kAttr._wrap 		= TRUE;
+//	Cryptoki::KeyAttribute kAttr;
+//	kAttr._decrypt 		= TRUE;
+//	kAttr._encrypt 		= TRUE;
+//	kAttr._extractable 	= FALSE;
+//	kAttr._keyType 		= KT_DES2;
+//	kAttr._private 		= TRUE;
+//	kAttr._sensitive 	= TRUE;
+//	kAttr._token 		= TRUE;
+//	kAttr._unwrap 		= TRUE;
+//	kAttr._wrap 		= TRUE;
 
-	_pCryptoki->createKey(keyName, kAttr, mInfo);
+	SafenetHelperUtil::createDES2Key(_pCryptoki, keyName);
+//	_pCryptoki->createKey(keyName, kAttr, mInfo);
 
 	// TODO Key size 2048 olmali
 	_pCryptoki->generateKeyPair(1024, GIB_PUBLIC_KEY_NAME, GIB_PRIVATE_KEY_NAME, true);
@@ -81,21 +82,7 @@ int SafenetHelperImpl::addLmk()
 	sprintf(lmkName, GIB_LMK_PREFIX "%03d", index);
 
 	std::string keyName(lmkName);
-	Cryptoki::MechanismInfo mInfo;
-	mInfo._type = MT_DES2_KEY_GEN;
-
-	Cryptoki::KeyAttribute kAttr;
-	kAttr._decrypt 		= TRUE;
-	kAttr._encrypt 		= TRUE;
-	kAttr._extractable 	= FALSE;
-	kAttr._keyType 		= KT_DES2;
-	kAttr._private 		= TRUE;
-	kAttr._sensitive 	= TRUE;
-	kAttr._token 		= TRUE;
-	kAttr._unwrap 		= TRUE;
-	kAttr._wrap 		= TRUE;
-
-	_pCryptoki->createKey(keyName, kAttr, mInfo);
+	SafenetHelperUtil::createDES2Key(_pCryptoki, keyName);
 
 	stringstream ss;
 	ss << std::setfill('0') << std::setw(4) << index;
@@ -278,12 +265,14 @@ int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFi
 // 3.9. Kcv(H') == J ?  .         Hesaplanan H' kcv ile J esit mi?
 	VectorUChar kcvTRAK = trak.getKcv();
 	if (kcvTRAK != inData._kcv_TRAK) {
+		throw ExceptionCryptoki(ERR_TRAK_KCV_INVALID, __FILE__, __LINE__);
 		// TODO
 	}
 
 // 3.10. Kcv(I') == K ?           Hesaplanan I' kcv ile K esit mi?
 	VectorUChar kcvTREK = trek.getKcv();
 	if (kcvTREK != inData._kcv_TREK) {
+		throw ExceptionCryptoki(ERR_TREK_KCV_INVALID, __FILE__, __LINE__);
 		// TODO
 	}
 
