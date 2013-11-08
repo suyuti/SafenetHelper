@@ -326,7 +326,7 @@ int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNext
 // 3.21. Kcv(H') == J ?            Hesaplanan H' kcv ile J esit mi?
 	VectorUChar kcvTRAK = trak.getKcv();
 	if (kcvTRAK != inData._kcv_TRAK) {
-		// TODO
+		throw ExceptionCryptoki(ERR_TRAK_KCV_INVALID, __FILE__, __LINE__);
 	}
 
 // 3.22. Kcv(I') == K ?            Hesaplanan I' kcv ile K esit mi?
