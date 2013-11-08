@@ -4,6 +4,7 @@
 #include <unistd.h>
 #endif
 
+#include <stdio.h>
 #include <iostream>
 #include <cstdlib>
 
@@ -105,9 +106,19 @@ int doGetActiveLMKIndex()
 // 4.  Get KCV of Active LMK
 bool doGetKCV()
 {
+	try {
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+		VectorUChar lmkKcv = lmk.getKcv(MT_DES3_ECB);
+		printf("Active LMK KCV: \n");
+		for (unsigned int i=0; i < lmkKcv.size(); i++)
+			printf("%02x", lmkKcv.data()[i]);
+		cout << endl;
+		return true;
+        } catch(ExceptionCryptoki &ex) {
+		cout << "An error occured: Did you run 1.Setup first?" << endl;
+	}
 	return false;
 }
-
 // 5.  Export Public Key
 bool doExportPublicKey()
 {
@@ -180,6 +191,7 @@ int main(int argc, char **argv)
 
 		case '4':
 		    doGetKCV();
+		    sleep(1);
 		    cout << "\n";
 		    break;
 
