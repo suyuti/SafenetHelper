@@ -539,7 +539,6 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_SHA256Data) {
 	}, ExceptionCryptoki);
 }
 
-
 TEST_F(SafenetHelperTests, negative_processFirst_invalid_key_type) {
 	char _data[] = {
 			'T','H','I','S',' ',
@@ -957,7 +956,55 @@ TEST_F(SafenetHelperTests, processNext) {
 		EXPECT_EQ(calcdTrakSha256Data, resp._trak_sha256_data);
 	});
 }
+
 //-----------------------------------------------------------------------
+
+TEST_F(SafenetHelperTests, negative_processNext_invalid_lmk_index) {
+	char _data[] = {
+			'T','H','I','S',' ',
+			'I','S',' ',
+			'T','E','S','T',' ',
+			'D','A','T','A',' ',
+			'N','O','T',' ',
+			'S','P','A','R','T','A',' ',' ',' ',' '
+	};
+
+	EXPECT_THROW({
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		VectorUChar data;
+		data.assign(_data, _data + sizeof(_data));
+
+		ProcessNextRequest req;
+
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+
+		char trakIV[32];
+		char trekIV[32];
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._param 	= trakIV;
+		mInfo._paramLen = sizeof(trakIV);
+		Cryptoki::KeyAttribute kAttr;
+		kAttr._token = FALSE;
+		Cryptoki::Key trak = SafenetHelperUtil::createAES256Key(pC, "TRAK", kAttr);
+		Cryptoki::Key trek = SafenetHelperUtil::createAES256Key(pC, "TREK", kAttr);
+
+		req._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*pC) + 100; // LMK Index changed here
+		mInfo._param 	= NULL;
+		mInfo._paramLen = 0;
+		mInfo._type 	= MT_DES3_ECB;
+		req._lmk_TRAK	= lmk.wrap(mInfo, trak);
+		req._lmk_TREK	= lmk.wrap(mInfo, trek);
+		req._kcv_TRAK 	= trak.getKcv();
+		req._kcv_TREK 	= trek.getKcv();
+		req._data		= data;
+
+		EXPECT_NE(req._kcv_TRAK, req._kcv_TREK);
+
+		ProcessNextResponse resp;
+		_pSafenet->processNext(req, resp); // Should throw exception here
+	}, ExceptionCryptoki);
+}
+
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
 //-----------------------------------------------------------------------
