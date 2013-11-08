@@ -318,6 +318,60 @@ TEST_F(SafenetHelperTests, processFirst) {
 	});
 }
 
+TEST_F(SafenetHelperTests, negative_processFirst_invalid_lmk_index) {
+	char _data[] = {
+			'T','H','I','S',' ',
+			'I','S',' ',
+			'T','E','S','T',' ',
+			'D','A','T','A',' ',
+			'N','O','T',' ',
+			'S','P','A','R','T','A',' ',' ',' ',' '
+	};
+	LOG4CXX_INFO(g_loggerTest, "Test: processFirst");
+	EXPECT_THROW({
+		// test preperation
+		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
+		VectorUChar data;
+		data.assign(_data, _data + sizeof(_data));
+
+		ProcessFirstRequest req;
+		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
+
+		Cryptoki::KeyAttribute kAttr;
+		kAttr._token 	= FALSE;
+		Cryptoki::Key trak = SafenetHelperUtil::createAES256Key(pC, "TRAK", kAttr);
+		Cryptoki::Key trek = SafenetHelperUtil::createAES256Key(pC, "TREK", kAttr);
+
+		char keyVal[32];
+		Cryptoki::MechanismInfo mInfo;
+		mInfo._param 	= keyVal;
+		mInfo._paramLen = sizeof(keyVal);
+
+		req._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*pC) + 100; // invalid LMK
+		mInfo._param 	= NULL;
+		mInfo._paramLen = 0;
+		mInfo._type 	= MT_DES3_ECB;
+		req._lmk_TRAK	= lmk.wrap(mInfo, trak);
+		req._lmk_TREK	= lmk.wrap(mInfo, trek);
+		req._kcv_TRAK 	= trak.getKcv();
+		req._kcv_TREK 	= trek.getKcv();
+
+		mInfo._param 	= NULL;
+		mInfo._paramLen = 0;
+		mInfo._type 	= MT_AES_ECB;
+		req._trek_data 	= trek.encrypt(mInfo, data);
+
+		req._sha256Data = pC->generateSHA256(data);
+		req._trak_sha256Data = trak.encrypt(mInfo, req._sha256Data);
+
+		// testee
+		LOG4CXX_INFO(g_loggerTest, "Test prepared");
+		ProcessFirstResponse resp;
+		int err = _pSafenet->processFirst(req, resp); // Should throw exception here
+	}, ExceptionCryptoki);
+}
+
+
 TEST_F(SafenetHelperTests, negative_processFirst_invalid_key_type) {
 	char _data[] = {
 			'T','H','I','S',' ',
