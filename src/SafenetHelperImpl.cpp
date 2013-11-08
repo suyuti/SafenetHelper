@@ -19,6 +19,8 @@
 #include "../include/SafenetHelperTypes.h"
 #include "SafenetHelperUtil.h"
 
+//-----------------------------------------------------------------------------
+
 SafenetHelperImpl::SafenetHelperImpl()
 {
 	std::string pin(HSM_SLOT_GIB_PIN);
@@ -27,12 +29,16 @@ SafenetHelperImpl::SafenetHelperImpl()
 
 }
 
+//-----------------------------------------------------------------------------
+
 int SafenetHelperImpl::login(unsigned long slotId, std::string& pin)
 {
 	_pCryptoki->close();
 	_pCryptoki->open(slotId, pin);
 	return SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
 
 int SafenetHelperImpl::setup()
 {
@@ -53,19 +59,7 @@ int SafenetHelperImpl::setup()
 	Cryptoki::MechanismInfo mInfo;
 	mInfo._type = MT_DES2_KEY_GEN;
 
-//	Cryptoki::KeyAttribute kAttr;
-//	kAttr._decrypt 		= TRUE;
-//	kAttr._encrypt 		= TRUE;
-//	kAttr._extractable 	= FALSE;
-//	kAttr._keyType 		= KT_DES2;
-//	kAttr._private 		= TRUE;
-//	kAttr._sensitive 	= TRUE;
-//	kAttr._token 		= TRUE;
-//	kAttr._unwrap 		= TRUE;
-//	kAttr._wrap 		= TRUE;
-
 	SafenetHelperUtil::createDES2Key(_pCryptoki, keyName);
-//	_pCryptoki->createKey(keyName, kAttr, mInfo);
 
 	// TODO Key size 2048 olmali
 	_pCryptoki->generateKeyPair(1024, GIB_PUBLIC_KEY_NAME, GIB_PRIVATE_KEY_NAME, true);
@@ -73,9 +67,12 @@ int SafenetHelperImpl::setup()
 	return SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+
 int SafenetHelperImpl::addLmk()
 {
-	int index = this->getLastLmkIndex();
+	int index = SafenetHelperUtil::getActiveLmkIndex(*this->_pCryptoki);//  this->getLastLmkIndex();
+
 	index++;
 
 	char lmkName[32] = {0x00};
@@ -84,18 +81,19 @@ int SafenetHelperImpl::addLmk()
 	std::string keyName(lmkName);
 	SafenetHelperUtil::createDES2Key(_pCryptoki, keyName);
 
-	stringstream ss;
-	ss << std::setfill('0') << std::setw(4) << index;
-	this->setLastLmkIndex(ss.str());
+	SafenetHelperUtil::setActiveLmkIndex(this->_pCryptoki, index);
 
 	return SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 
 // deprecated
 int SafenetHelperImpl::GenerateAES256Key(VectorUChar& key,
 										 VectorUChar& kcv)
 {
+	throw "Deprecated method!";
+
 	int index = this->getLastLmkIndex();
 	stringstream ss;
 	ss << GIB_LMK_PREFIX << setfill('0') << setw(3) << index;
@@ -125,20 +123,29 @@ int SafenetHelperImpl::GenerateAES256Key(VectorUChar& key,
 	return SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
+
 int SafenetHelperImpl::getLastLmkIndex()
 {
+	throw "Deprecated method";
 	Cryptoki::DataObject d = _pCryptoki->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 	VectorUChar val = d.getValue();
 	int activeLmkIndex = atol((char*)val.data());
 	return activeLmkIndex;
 }
 
+//-----------------------------------------------------------------------------
+
 int SafenetHelperImpl::setLastLmkIndex(std::string val)
 {
+	throw "Deprecated method";
+
 	Cryptoki::DataObject d = _pCryptoki->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
 	d.setValue(val.c_str(), val.length());
 	return SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
 
 int SafenetHelperImpl::getFisCalNo(const VectorUChar inData, VectorUChar& outData)
 {
@@ -149,6 +156,9 @@ int SafenetHelperImpl::getFisCalNo(const VectorUChar inData, VectorUChar& outDat
 
 	return SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+
 int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& outData)
 {
 	// 2.13. C' => TRMK          Sg ile decrypt edilir.
@@ -173,32 +183,27 @@ int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& 
 
 // 2.14. E: TRAK create      AES256, session based
 	std::stringstream ss("");
+#ifdef __TEST__
+	ss << GIB_TRAK_NAME;
+#else
+	// TODO isimlendirme icin cozunurlugu daha yuksek metod bulmalı. klasik random saniye bazinda farkli veri uretecektir.
 	srand(time(NULL) ^ getpid());
 	// TODO isim random olmali. Test amacli olarak belirli bir isim secildi. Test case'de key'e tekrar erisilebilsin diye
-	// ss << "TRAK_" << setfill('0') << setw(4) << random() % 10000 + 1;
-	ss << GIB_TRAK_NAME;
-	kAttr._label 		= ss.str();
-	kAttr._keyType 		= KT_AES;
+	ss << "TRAK_" << setfill('0') << setw(4) << random() % 10000 + 1;
+#endif
 	kAttr._token 		= FALSE;
-
-	mInfo._type = MT_AES_KEY_GEN;
-	mInfo._param = trakIV;
-	mInfo._paramLen = sizeof(trakIV);
-	Cryptoki::Key trak 	= _pCryptoki->createSecretKey(ss.str(), kAttr, mInfo);
+	Cryptoki::Key trak = SafenetHelperUtil::createAES256Key(_pCryptoki, ss.str(), kAttr);
 
 // 2.15. F: TREK create      AES256, session based
 	ss.str("");
+#ifdef __TEST__
+	ss << GIB_TREK_NAME;
+#else
 	srand(time(NULL) ^ getpid());
 	// TODO isim random olmali. Test amacli olarak belirli bir isim secildi. Test case'de key'e tekrar erisilebilsin diye
-	// ss << "TREK_" << setfill('0') << setw(4) << random() % 10000 + 1;
-	ss << GIB_TREK_NAME;
-	kAttr._label 		= ss.str();
-	kAttr._keyType 		= KT_AES;
-	kAttr._token 		= FALSE;
-	mInfo._type 		= MT_AES_KEY_GEN;
-	mInfo._param 		= trekIV;
-	mInfo._paramLen 	= sizeof(trekIV);
-	Cryptoki::Key trek 	= _pCryptoki->createSecretKey(ss.str(), kAttr, mInfo);
+	ss << "TREK_" << setfill('0') << setw(4) << random() % 10000 + 1;
+#endif
+	Cryptoki::Key trek = SafenetHelperUtil::createAES256Key(_pCryptoki, ss.str(), kAttr);
 
 // 2.16. G: active Lmk Index ActiveLmkIndex dataObject'te tutuluyor.
 	outData._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*_pCryptoki);
@@ -240,6 +245,7 @@ int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& 
 	return SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 
 int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFirstResponse& outData)
 {
@@ -299,9 +305,11 @@ int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFi
 	return SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 /**
  *
  * */
+
 int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNextResponse& outData)
 {
 // 3.18. G ile LMK bulunur
@@ -348,5 +356,7 @@ int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNext
 
 	return SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
 
 

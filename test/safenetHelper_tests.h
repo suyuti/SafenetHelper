@@ -96,7 +96,7 @@ TEST_F(SafenetHelperTests, can_be_relogin) {
 
 //-----------------------------------------------------------------------
 
-TEST_F(SafenetHelperTests, create_key_token) {
+TEST_F(SafenetHelperTests, DISABLED_create_key_token) {
 	EXPECT_NO_THROW({
 		VectorUChar outKey;
 		VectorUChar outKcv;
@@ -190,7 +190,7 @@ TEST_F(SafenetHelperTests, getFisCalNo) {
 //-----------------------------------------------------------------------
 
 TEST_F(SafenetHelperTests, getTraek) {
-	EXPECT_NO_THROW({
+	//EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
 
 		char keyVal[32];
@@ -199,10 +199,7 @@ TEST_F(SafenetHelperTests, getTraek) {
 		mInfo._paramLen = sizeof(keyVal);
 
 		Cryptoki::KeyAttribute kAttr;
-		kAttr._label 	= "Test_TRMK";
-		kAttr._keyType 	= KT_AES;
-		kAttr._token 	= FALSE;
-		Cryptoki::Key 	trmk 	= pC->createSecretKey("Test_TRMK", kAttr, mInfo);
+		Cryptoki::Key 	trmk 	= SafenetHelperUtil::createAES256Key(pC, "TRMK", kAttr);
 		Cryptoki::Key 	pubGib 	= pC->getKeyByName(OC_PUBLIC_KEY, GIB_PUBLIC_KEY_NAME);
 		mInfo._param 	= NULL;
 		mInfo._paramLen = 0;
@@ -256,7 +253,7 @@ TEST_F(SafenetHelperTests, getTraek) {
 		EXPECT_EQ(trmkTrak, resp._TRMK_TRAK);
 
 		// TODO signature check
-	});
+	//});
 }
 
 //-----------------------------------------------------------------------

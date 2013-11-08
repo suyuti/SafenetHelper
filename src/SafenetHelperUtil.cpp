@@ -43,6 +43,14 @@ int SafenetHelperUtil::getActiveLmkIndex(Cryptoki::CryptokiHelper& session)
 	return activeLmkIndex;
 }
 
+void SafenetHelperUtil::setActiveLmkIndex(Cryptoki::CryptokiHelper* pSession, int val)
+{
+	Cryptoki::DataObject d = pSession->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
+	stringstream ss;
+	ss << std::setfill('0') << std::setw(4) << val;
+	d.setValue(ss.str().c_str(), ss.str().length());
+}
+
 Cryptoki::Key SafenetHelperUtil::getLmk(Cryptoki::CryptokiHelper& session, int lmkIndex)
 {
 	std::stringstream ss;

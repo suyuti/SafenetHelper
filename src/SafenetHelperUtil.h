@@ -14,6 +14,7 @@ class SafenetHelperUtil {
 public:
 	static Cryptoki::Key getActiveLmk(Cryptoki::CryptokiHelper& session);
 	static int getActiveLmkIndex(Cryptoki::CryptokiHelper& session);
+	static void setActiveLmkIndex(Cryptoki::CryptokiHelper* pSession, int val);
 	static Cryptoki::Key getLmk(Cryptoki::CryptokiHelper& session, int lmkIndex);
 	static Cryptoki::Key createDES2Key(	  Cryptoki::CryptokiHelper* pSession,
 									   	  std::string keyName);

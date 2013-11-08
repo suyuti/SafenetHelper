@@ -7,6 +7,9 @@
 #ifndef _SAFENET_HELPER_TYPES_H_
 #define _SAFENET_HELPER_TYPES_H_
 
+// TODO __TEST__ tanimi make dosyasında olmali.
+#define __TEST__
+
 #define HSM_SLOT_GIB			1
 #define HSM_SLOT_GIB_PIN		"1234"
 #define GIB_ACTIVE_LMK_INDEX	"ActiveLmkIndex"
