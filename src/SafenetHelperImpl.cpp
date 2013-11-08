@@ -293,7 +293,7 @@ int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFi
 
 // 3.14. R == Q' ?                Hesaplanan SHA ile gelen SHA karsilastirilir.
 	if (calcdSha256 != inSha256) {
-		// TODO
+		throw ExceptionCryptoki(ERR_SHA256DATA_INVALID, __FILE__, __LINE__);
 	}
 
 	return SUCCESS;
