@@ -9,7 +9,8 @@ set(cryptokiSources     cryptokiHelper/CryptokiHelper.cpp
                         )
 
 set(utilSources         util/Buffer.cpp
-                        util/logger.cpp)
+                        util/logger.cpp
+			util/util.cpp)
 
 set(libSources          SafenetHelper.cpp
                         SafenetHelperImpl.cpp
