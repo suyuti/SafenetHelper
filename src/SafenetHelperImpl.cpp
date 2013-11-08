@@ -293,7 +293,7 @@ int SafenetHelperImpl::processFirst(const ProcessFirstRequest& inData, ProcessFi
 
 // 3.14. R == Q' ?                Hesaplanan SHA ile gelen SHA karsilastirilir.
 	if (calcdSha256 != inSha256) {
-		// TODO
+		throw ExceptionCryptoki(ERR_SHA256DATA_INVALID, __FILE__, __LINE__);
 	}
 
 	return SUCCESS;
@@ -326,13 +326,13 @@ int SafenetHelperImpl::processNext(const ProcessNextRequest& inData, ProcessNext
 // 3.21. Kcv(H') == J ?            Hesaplanan H' kcv ile J esit mi?
 	VectorUChar kcvTRAK = trak.getKcv();
 	if (kcvTRAK != inData._kcv_TRAK) {
-		// TODO
+		throw ExceptionCryptoki(ERR_TRAK_KCV_INVALID, __FILE__, __LINE__);
 	}
 
 // 3.22. Kcv(I') == K ?            Hesaplanan I' kcv ile K esit mi?
 	VectorUChar kcvTREK = trek.getKcv();
 	if (kcvTREK != inData._kcv_TREK) {
-		// TODO
+		throw ExceptionCryptoki(ERR_TREK_KCV_INVALID, __FILE__, __LINE__);
 	}
 // 3.23. T: SHA256(S)              Verinin ozeti hesaplanir.
 	VectorUChar calcdSha256 = _pCryptoki->generateSHA256(inData._data);
