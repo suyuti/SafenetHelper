@@ -35,6 +35,9 @@ public:
 	VectorUChar generateSHA1(const char* pData, int len);
 	VectorUChar generateSHA1(const VectorUChar& data);
 
+	// export
+	void getPublicKey(string keyName, uchar *pModulus, int *pModLen, uchar *pExponent, int *pExpLen);
+
 	// Data objects
 	DataObject getDataByName(const std::string& appName, const std::string& name);
 	DataObject createData(const std::string& appName, const std::string& name, const DataAttribute& attr);
