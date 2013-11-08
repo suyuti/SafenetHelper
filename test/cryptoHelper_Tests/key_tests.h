@@ -6,6 +6,7 @@
 #include "../../src/cryptokiHelper/Key.h"
 #include "cryptokiHelper_tests.h"
 #include "cryptokiHelperTestUtil.h"
+#include "../../src/SafenetHelperUtil.h"
 
 class keyTests : public ::testing::Test {
 public:
@@ -63,6 +64,27 @@ TEST_F(keyTests, create_and_find_token_key) {
 	});
 }
 
+TEST_F(keyTests, create_and_find_token_key_2) {
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		p->open(slot, pin);
+
+
+		Cryptoki::KeyAttribute attr;
+		attr._token = TRUE;
+		SafenetHelperUtil::createDES2Key(p, "TokenBasedTestKey", attr);
+		p->close();
+
+		// find
+		p->open(slot, pin);
+		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "TokenBasedTestKey");
+		k.getKcv(MT_DES3_ECB); // to avoid from not used variable warning
+		p->close();
+	});
+}
+
 //-----------------------------------------------------------------------------
 
 TEST_F(keyTests, create_and_find_session_key) {
@@ -76,6 +98,25 @@ TEST_F(keyTests, create_and_find_session_key) {
 		attr._token = FALSE;
 		mInfo._type = MT_DES2_KEY_GEN;
 		p->createKey("SessionBasedTestKey", attr, mInfo);
+		// find
+		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "SessionBasedTestKey");
+		k.getKcv(MT_DES3_ECB); // to avoid from not used variable warning
+		p->close();
+	});
+}
+
+TEST_F(keyTests, create_and_find_session_key_2) {
+	EXPECT_NO_THROW({
+		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		p->open(slot, pin);
+		Cryptoki::KeyAttribute attr;
+		Cryptoki::MechanismInfo mInfo;
+
+		attr._token = FALSE;
+		SafenetHelperUtil::createDES2Key(p, "SessionBasedTestKey", attr);
+
 		// find
 		Cryptoki::Key k = p->getKeyByName(OC_SECRET_KEY, "SessionBasedTestKey");
 		k.getKcv(MT_DES3_ECB); // to avoid from not used variable warning
@@ -368,7 +409,7 @@ TEST_F(keyTests, negative_unwrap_not_permitted) {
 
 //-----------------------------------------------------------------------------
 
-TEST_F(keyTests, create_key_by_value) {
+TEST_F(keyTests, create_key_by_value_AES) {
 	char keyVal[32];
 	EXPECT_NO_THROW({
 		std::string keyName("Test_AES_by_val");
@@ -377,14 +418,7 @@ TEST_F(keyTests, create_key_by_value) {
 		unsigned long slot = 1L;
 		p->open(slot, pin);
 
-		Cryptoki::MechanismInfo mInfo;
-		mInfo._param 	= keyVal;
-		mInfo._paramLen = sizeof(keyVal);
-
-		Cryptoki::KeyAttribute kAttr;
-		kAttr._label 	= keyName;
-		kAttr._keyType 	= KT_AES;
-		Cryptoki::Key k = p->createSecretKey(keyName, kAttr, mInfo);
+		Cryptoki::Key k = SafenetHelperUtil::createAES256Key(p, keyName);
 		VectorUChar kcv = k.getKcv();
 
 		Cryptoki::Key kk = p->getKeyByName(OC_SECRET_KEY, keyName);
@@ -422,6 +456,41 @@ TEST_F(keyTests, sign_verify) {
 		pC->close();
 
 		EXPECT_TRUE(verified);
+	});
+}
+
+TEST_F(keyTests, encrypt_with_des2__decrypt_with_aes) {
+	char clearData[] = {
+						0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+						0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
+						};
+	EXPECT_NO_THROW({
+		Cryptoki::KeyAttribute attr;
+		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
+		std::string pin("1234");
+		unsigned long slot = 1L;
+		p->open(slot, pin);
+
+		Cryptoki::Key wrapperDES2 	= SafenetHelperUtil::createDES2Key(p, "WrapperDES2");
+		Cryptoki::Key targetDES2 	= SafenetHelperUtil::createDES2Key(p, "targetDES2");
+
+		Cryptoki::MechanismInfo mInfo;
+		unsigned char iv[8] 	= {0x00};
+		mInfo._type 			= MT_DES3_CBC;
+		mInfo._param 			= iv;
+		mInfo._paramLen 		= sizeof(iv);
+		VectorUChar	wrappedKey	= wrapperDES2.wrap(mInfo, targetDES2);
+
+		mInfo._type 			= MT_DES3_CBC;
+		mInfo._param 			= iv;
+		mInfo._paramLen 		= sizeof(iv);
+		attr._keyType			= KT_AES;
+		Cryptoki::Key unwrapped = wrapperDES2.unwrap(mInfo, wrappedKey, attr);
+
+		VectorUChar kcv1 = targetDES2.getKcv(MT_DES3_ECB);
+		VectorUChar kcv2 = unwrapped.getKcv();
+		EXPECT_NE(kcv1, kcv2);
+
 	});
 }
 
