@@ -4,6 +4,8 @@
 #include "CryptokiHelperTypes.h"
 #include "../../include/SafenetHelperTypes.h"
 #include "cryptoki.h"
+#include <log4cxx/logger.h>
+
 
 namespace Cryptoki {
 

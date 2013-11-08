@@ -6,6 +6,7 @@ set(cryptokiSources     cryptokiHelper/CryptokiHelper.cpp
                         cryptokiHelper/ExceptionCryptoki.cpp
                         cryptokiHelper/Key.cpp
                         cryptokiHelper/DataObject.cpp
+                        cryptokiHelper/CryptokiInfo.cpp
                         )
 
 set(utilSources         util/Buffer.cpp
