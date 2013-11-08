@@ -9,10 +9,13 @@
 
 #include "../src/cryptokiHelper/CryptokiHelper.h"
 #include "../src/cryptokiHelper/ExceptionCryptoki.h"
+#include "../src/SafenetHelperUtil.h"
+#include "../src/SafenetHelper.h"
 
 using namespace std;
 
 Cryptoki::CryptokiHelper *pC = NULL;
+SafenetHelper *sH = NULL;
 
 void clearScreen()
 {
@@ -35,7 +38,16 @@ void sleep(int seconds)
 bool initialize()
 {
 	try {
+	        log4cxx::xml::DOMConfigurator::configure("../test/Log4cxxConfig.xml");
+
+		std::string pin("1234");
+		int slot = 1L;
+
+		sH = SafenetHelper::instance();
+		sH->login(slot, pin);
+
 		pC = Cryptoki::CryptokiHelper::instance();
+
 	} catch(ExceptionCryptoki &ex) {
 		return false;
 	}
@@ -46,19 +58,48 @@ bool initialize()
 // 1. Setup
 bool doSetup()
 {
+	try {
+	        char selection = 0;
+
+		pC->getDataByName(GIB_APPNAME, GIB_ACTIVE_LMK_INDEX);
+
+		cout << "Setup already done! Are you sure? (y/N)" << endl;
+		cin >> selection;
+		cout << endl;
+
+		if (selection == 'y') {
+			sH->setup();
+			return true;
+		}
+
+	} catch(ExceptionCryptoki &ex) {
+	        sH->setup();
+		return true;
+	}
+
 	return false;
 }
 
 // 2.  Add LMK
 bool doAddLMK()
 {
-	return false;
+	try {
+		return sH->addLmk() == 0;
+	} catch(ExceptionCryptoki &ex) {
+		cout << "An error occured: Did you run 1.Setup first?" << endl;
+		return false;
+	}
 }
 
 // 3.  Get Active LMK Index
-bool doGetActiveLMKIndex()
+int doGetActiveLMKIndex()
 {
-	return false;
+	try {
+		return SafenetHelperUtil::getActiveLmkIndex(*pC);
+	} catch(ExceptionCryptoki &ex) {
+		cout << "An error occured: Did you run 1.Setup first?" << endl;
+		return -1;
+	}
 }
 
 // 4.  Get KCV of Active LMK
@@ -88,6 +129,7 @@ bool doRestore()
 int main(int argc, char **argv)
 {
     char selection = 0;
+    int activeLMKIndex = 0;
 
     if (!initialize()) {
 	    std::cout << "Cryptoki initialize failed." << std::endl;
@@ -129,8 +171,11 @@ int main(int argc, char **argv)
 		    cout << "\n";
 		    break;
 		case '3':
-		    doGetActiveLMKIndex();
+		    activeLMKIndex = doGetActiveLMKIndex();
+		    if (activeLMKIndex >= 0)
+			    cout << "Current Active LMK Index: " << activeLMKIndex;
 		    cout << "\n";
+		    sleep(1);
 		    break;
 
 		case '4':
