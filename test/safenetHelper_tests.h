@@ -368,7 +368,7 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_lmk_index) {
 		// testee
 		LOG4CXX_INFO(g_loggerTest, "Test prepared");
 		ProcessFirstResponse resp;
-		int err = _pSafenet->processFirst(req, resp); // Should throw exception here
+		int err __UNUSED__ = _pSafenet->processFirst(req, resp); // Should throw exception here
 	}, ExceptionCryptoki);
 }
 
@@ -423,7 +423,7 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_kcv_of_trak) {
 		// testee
 		LOG4CXX_INFO(g_loggerTest, "Test prepared");
 		ProcessFirstResponse resp;
-		int err = _pSafenet->processFirst(req, resp); // Should throw exception here
+		int err __UNUSED__ = _pSafenet->processFirst(req, resp); // Should throw exception here
 	}, ExceptionCryptoki);
 }
 
@@ -478,7 +478,7 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_kcv_of_trek) {
 		// testee
 		LOG4CXX_INFO(g_loggerTest, "Test prepared");
 		ProcessFirstResponse resp;
-		int err = _pSafenet->processFirst(req, resp); // Should throw exception here
+		int err __UNUSED__ = _pSafenet->processFirst(req, resp); // Should throw exception here
 	}, ExceptionCryptoki);
 }
 
@@ -535,7 +535,7 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_SHA256Data) {
 		// testee
 		LOG4CXX_INFO(g_loggerTest, "Test prepared");
 		ProcessFirstResponse resp;
-		int err = _pSafenet->processFirst(req, resp); // Should throw exception here
+		int err __UNUSED__ = _pSafenet->processFirst(req, resp); // Should throw exception here
 	}, ExceptionCryptoki);
 }
 
@@ -583,7 +583,7 @@ TEST_F(SafenetHelperTests, negative_processFirst_invalid_key_type) {
 
 		// testee
 		ProcessFirstResponse resp;
-		int err = _pSafenet->processFirst(req, resp);  // should throw here
+		int err __UNUSED__ = _pSafenet->processFirst(req, resp);  // should throw here
 	}, ExceptionCryptoki);
 }
 
@@ -978,8 +978,8 @@ TEST_F(SafenetHelperTests, negative_processNext_invalid_lmk_index) {
 
 		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
 
-		char trakIV[32];
-		char trekIV[32];
+		char trakIV[32] __UNUSED__;
+		char trekIV[32] __UNUSED__;
 		Cryptoki::MechanismInfo mInfo;
 		mInfo._param 	= trakIV;
 		mInfo._paramLen = sizeof(trakIV);
@@ -1026,8 +1026,8 @@ TEST_F(SafenetHelperTests, negative_processNext_invalid_kcv_of_trak) {
 
 		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
 
-		char trakIV[32];
-		char trekIV[32];
+		char trakIV[32] __UNUSED__;
+		char trekIV[32] __UNUSED__;
 		Cryptoki::MechanismInfo mInfo;
 		mInfo._param 	= trakIV;
 		mInfo._paramLen = sizeof(trakIV);
@@ -1073,8 +1073,8 @@ TEST_F(SafenetHelperTests, negative_processNext_invalid_kcv_of_trek) {
 
 		Cryptoki::Key lmk = SafenetHelperUtil::getActiveLmk(*pC);
 
-		char trakIV[32];
-		char trekIV[32];
+		char trakIV[32] __UNUSED__;
+		char trekIV[32] __UNUSED__;
 		Cryptoki::MechanismInfo mInfo;
 		mInfo._param 	= trakIV;
 		mInfo._paramLen = sizeof(trakIV);

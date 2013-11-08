@@ -410,7 +410,6 @@ TEST_F(keyTests, negative_unwrap_not_permitted) {
 //-----------------------------------------------------------------------------
 
 TEST_F(keyTests, create_key_by_value_AES) {
-	char keyVal[32];
 	EXPECT_NO_THROW({
 		std::string keyName("Test_AES_by_val");
 		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
@@ -460,10 +459,6 @@ TEST_F(keyTests, sign_verify) {
 }
 
 TEST_F(keyTests, encrypt_with_des2__decrypt_with_aes) {
-	char clearData[] = {
-						0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-						0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17
-						};
 	EXPECT_NO_THROW({
 		Cryptoki::KeyAttribute attr;
 		Cryptoki::CryptokiHelper* p = Cryptoki::CryptokiHelper::instance();
@@ -490,7 +485,6 @@ TEST_F(keyTests, encrypt_with_des2__decrypt_with_aes) {
 		VectorUChar kcv1 = targetDES2.getKcv(MT_DES3_ECB);
 		VectorUChar kcv2 = unwrapped.getKcv();
 		EXPECT_NE(kcv1, kcv2);
-
 	});
 }
 
