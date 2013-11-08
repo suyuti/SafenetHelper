@@ -74,5 +74,6 @@ extern log4cxx::LoggerPtr g_logger;
 extern log4cxx::LoggerPtr g_loggerCryptoki;
 extern log4cxx::LoggerPtr g_loggerKey;
 extern log4cxx::LoggerPtr g_loggerDataObject;
+extern log4cxx::LoggerPtr g_loggerTest;
 
 #endif //_SAFENET_HELPER_TYPES_H_
