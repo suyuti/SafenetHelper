@@ -2,7 +2,7 @@
 #include "cryptoki.h"
 #include "ExceptionCryptoki.h"
 #include <iostream>
-
+#include "CryptokiInfo.h"
 
 namespace Cryptoki {
 
@@ -252,7 +252,10 @@ Key	Key::unwrap(const MechanismInfo& mech, const char* pWrappedKey, int wrappedK
         {CKA_EXTRACTABLE,   (CK_VOID_PTR)&attr._extractable, 	sizeof(CK_BBOOL)},
         {CKA_SENSITIVE,     (CK_VOID_PTR)&attr._sensitive,   	sizeof(CK_BBOOL)},
         {CKA_KEY_TYPE,      (CK_VOID_PTR)&attr._keyType,    	sizeof(CK_KEY_TYPE)},
+        {CKA_LABEL,			(CK_VOID_PTR)attr._label.c_str(), 	attr._label.length()},
     };
+
+    LOG4CXX_DEBUG(g_loggerKey, "Key type: " << CryptokiInfo::getKeyTypeName(attr._keyType));
 
     CK_COUNT tplSize = sizeof(tpl)/sizeof(CK_ATTRIBUTE);
 
