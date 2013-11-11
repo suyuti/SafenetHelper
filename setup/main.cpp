@@ -13,6 +13,8 @@
 #include "../src/SafenetHelperUtil.h"
 #include "../src/SafenetHelper.h"
 
+#include "../src/util/util.h"
+
 using namespace std;
 
 Cryptoki::CryptokiHelper *pC = NULL;
@@ -119,9 +121,32 @@ bool doGetKCV()
 	}
 	return false;
 }
+
 // 5.  Export Public Key
 bool doExportPublicKey()
 {
+	try
+	{
+		std::string keyName(GIB_PUBLIC_KEY_NAME);
+		uchar mod[512];
+		uchar exp[512];
+		int modLen;
+		int expLen;
+		pC->getPublicKey(keyName, mod, &modLen, exp, &expLen);
+		std::string strExp = util::toHexStr(exp, expLen, ' ');
+		std::string strMod = util::toHexStr(mod, modLen, ' ');
+		cout << "Key: " << keyName << endl;
+		cout << "Exp: " << strExp << endl;
+		cout << "Mod: " << strMod << endl;
+		cout << endl;
+		sleep(5);
+		return true;
+	}
+	catch(ExceptionCryptoki &ex)
+	{
+		return false;
+	}
+
 	return false;
 }
 

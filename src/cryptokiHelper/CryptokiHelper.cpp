@@ -1,5 +1,6 @@
 #include "CryptokiHelper.h"
 #include <stdio.h>
+#include <string.h>
 #include <iostream>
 #include "cryptoki.h"
 #include "ctvdef.h"
@@ -332,6 +333,47 @@ VectorUChar CryptokiHelper::generateSHA1(const char* pData, int len)
 VectorUChar CryptokiHelper::generateSHA1(const VectorUChar& data)
 {
     return this->generateSHA1((char*)data.data(), data.size());
+}
+
+void CryptokiHelper::getPublicKey(string keyName, uchar *pModulus, int *pModLen, uchar *pExponent, int *pExpLen)
+{
+	CK_ATTRIBUTE pbkTemplate[] =
+	{
+	    { CKA_MODULUS, NULL, 0 },
+	    { CKA_PUBLIC_EXPONENT, NULL, 0 },
+	};
+
+	CK_COUNT atrCount = sizeof(pbkTemplate)/sizeof(CK_ATTRIBUTE);
+
+	Key publicKey =  getKeyByName(OC_PUBLIC_KEY, keyName.c_str());
+
+	CK_OBJECT_HANDLE hObject = publicKey._objectHandle;
+
+	int rv = C_GetAttributeValue(_sessionHandle, hObject, pbkTemplate, atrCount);
+	if (rv != CKR_OK)
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+
+	pbkTemplate[0].pValue = new uchar[pbkTemplate[0].valueLen];
+	pbkTemplate[1].pValue = new uchar[pbkTemplate[1].valueLen];
+
+	rv = C_GetAttributeValue(_sessionHandle, hObject, pbkTemplate, atrCount);
+	if (rv != CKR_OK)
+	{
+	        delete[] (uchar *)pbkTemplate[0].pValue;
+		delete[] (uchar *)pbkTemplate[1].pValue;
+		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	}
+
+	*pModLen = pbkTemplate[0].valueLen;
+	*pExpLen = pbkTemplate[1].valueLen;
+
+	memcpy(pModulus, pbkTemplate[0].pValue, pbkTemplate[0].valueLen);
+	memcpy(pExponent,  pbkTemplate[1].pValue, pbkTemplate[1].valueLen);
+
+	delete[] (uchar *)pbkTemplate[0].pValue;
+	delete[] (uchar *)pbkTemplate[1].pValue;
+
+	return;
 }
 
 VectorUChar CryptokiHelper::digest(const MechanismInfo& mInfo, const char* pData, int len)
