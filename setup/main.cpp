@@ -17,6 +17,8 @@
 
 using namespace std;
 
+#define GIB_SETUP_PUBLICKEY_FILE_NAME "PublicKey.txt"
+
 Cryptoki::CryptokiHelper *pC = NULL;
 SafenetHelper *sH = NULL;
 
@@ -69,7 +71,6 @@ bool doSetup()
 		cout << "Setup already done! Are you sure? (y/N)" << endl;
 		cin >> selection;
 		cout << endl;
-
 		if (selection == 'y') {
 			sH->setup();
 			return true;
@@ -123,6 +124,21 @@ bool doGetKCV()
 }
 
 // 5.  Export Public Key
+void exportPublicKeyToFile(const std::string fileName,
+						   const std::string keyname,
+						   const std::string exp,
+						   const std::string mod)
+{
+	FILE* fp = fopen(fileName.c_str(), "w+");
+	if (fp == NULL) {
+		return;
+	}
+	fprintf(fp, "Key Name: %s\r\n", keyname.c_str());
+	fprintf(fp, "Public Exponent: %s\r\n", exp.c_str());
+	fprintf(fp, "Public modulus : %s\r\n", mod.c_str());
+	fclose(fp);
+}
+
 bool doExportPublicKey()
 {
 	try
@@ -139,6 +155,10 @@ bool doExportPublicKey()
 		cout << "Exp: " << strExp << endl;
 		cout << "Mod: " << strMod << endl;
 		cout << endl;
+
+		exportPublicKeyToFile(GIB_SETUP_PUBLICKEY_FILE_NAME, keyName, strExp, strMod);
+		cout << "Public key exported to file : " GIB_SETUP_PUBLICKEY_FILE_NAME << endl;
+
 		sleep(5);
 		return true;
 	}
@@ -244,7 +264,9 @@ int main(int argc, char **argv)
 		    cout << "\n";
 		    break;
 
-	        case '8':
+	    case '8':
+	    case 'q':
+	    case 'Q':
 		    cout << "Exit\n";
 		    exit(0);
 		    break;
@@ -254,7 +276,7 @@ int main(int argc, char **argv)
 			cout << endl;
 		}
 
-	        sleep(1);
+	    sleep(1);
 
 	} while (true);
 
