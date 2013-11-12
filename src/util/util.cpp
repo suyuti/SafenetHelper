@@ -97,3 +97,40 @@ std::string util::toHexStr(const unsigned char* pData, int len, char delimiter)
 
 	return ss.str();
 }
+
+/*
+Bit padding a.k.a. One and Zeroes Padding
+Returns padded string according to ANSI X.923 standart
+Defined in ANSI X.923 (based on NIST Special Publication 800-38A) and ISO/IEC 9797-1 as Padding Method 2.
+AES block size: 128 bits = 16 bytes
+*/
+VectorUChar util::pad(const VectorUChar &data)
+{
+	if (data.empty())
+		return data;
+
+	VectorUChar paddedData = data;
+	int blocksize = AES_BLOCKSIZE;
+	int padlen = blocksize - (data.size() % blocksize) - 1;
+	
+	paddedData.push_back(0x80);
+	for (int i=0; i < padlen; i++)
+		paddedData.push_back(0x00);
+	
+	return paddedData;
+}
+
+VectorUChar util::unpad(const VectorUChar &data)
+{
+	if (data.empty())
+		return data;
+	
+	int padlen = 0;
+	VectorUChar unpaddedData;
+	while (!data[data.size() - 1 - padlen] && padlen < data.size())
+		padlen++;
+	padlen++; // 0x80
+	
+	unpaddedData.assign(data.begin(), data.end() - padlen);
+	return unpaddedData;
+}

@@ -9,6 +9,10 @@
 #define UTIL_H_
 
 #include <string>
+#include <vector>
+#include "../../include/SafenetHelperTypes.h"
+
+#define AES_BLOCKSIZE 16
 
 class util {
 public:
@@ -20,6 +24,9 @@ public:
 
 	static std::string toStr(int val, std::string format="D4");
 	static std::string toHexStr(const unsigned char *pData, int len, char delimiter= ' ');
+
+	static VectorUChar pad(const VectorUChar &data);
+	static VectorUChar unpad(const VectorUChar &data);
 };
 
 #endif /* UTIL_H_ */

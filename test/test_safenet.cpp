@@ -9,6 +9,7 @@
 #include "cryptoHelper_Tests/key_tests.h"
 #include "cryptoHelper_Tests/dataObject_tests.h"
 #include "safenetHelper_tests.h"
+#include "util_tests.h"
 #include "safenetEnvironment.h"
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
