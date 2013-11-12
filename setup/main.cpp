@@ -173,13 +173,37 @@ bool doExportPublicKey()
 // 6.  Backup
 bool doBackup()
 {
-	return false;
+	int rv = -1;
+#ifdef WINDOWS
+	// TODO:
+	// system()
+	// system()
+#else
+	rv = system("/opt/PTK/bin/ctconf -q");
+	if (rv < 0 || rv > 0)
+		return false;
+	rv = system("/opt/PTK/bin/ctkmu x -s0 -c1");
+	if (rv < 0 || rv > 0)
+		return false;
+#endif
+	sleep(1);
+	return true;
 }
 
 // 7.  Restore
 bool doRestore()
 {
-	return false;
+	int rv = -1;
+#ifdef WINDOWS
+	// TODO:
+	// system()
+#else
+	system("/opt/PTK/bin/ctkmu i -s0 -c1");
+	if (rv < 0 || rv > 0)
+		return false;
+#endif
+	sleep(1);
+	return true;
 }
 
 int main(int argc, char **argv)
