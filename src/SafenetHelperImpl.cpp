@@ -18,6 +18,18 @@
 #include "cryptokiHelper/ExceptionCryptoki.h"
 #include "../include/SafenetHelperTypes.h"
 #include "SafenetHelperUtil.h"
+#include <string.h>
+
+unsigned char 	g_sign_hash_constant[] 	= {
+											0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
+											0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05,
+											0x00, 0x04, 0x20
+										   };
+
+unsigned char 	g_sign_schema_constant[] = {0x00, 0x01 };
+int 			g_sizeof_sign_hash_constant 	= sizeof(g_sign_hash_constant);
+int 			g_sizeof_sign_schema_constant 	= sizeof(g_sign_schema_constant);
+
 
 //-----------------------------------------------------------------------------
 
@@ -61,8 +73,7 @@ int SafenetHelperImpl::setup()
 
 	SafenetHelperUtil::createDES2Key(_pCryptoki, keyName);
 
-	// TODO Key size 2048 olmali
-	_pCryptoki->generateKeyPair(1024, GIB_PUBLIC_KEY_NAME, GIB_PRIVATE_KEY_NAME, true);
+	_pCryptoki->generateKeyPair(GIB_RSA_KEY_SIZE, GIB_PUBLIC_KEY_NAME, GIB_PRIVATE_KEY_NAME, true);
 
 	return SUCCESS;
 }
@@ -239,8 +250,34 @@ int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& 
 	mInfo._type 		= MT_AES_ECB;
 	outData._TRMK_TREK 	= trmk.wrap(mInfo, trek);
 
-// 2.23. N: Sg(L+M)          sign
-	// TODO
+// 2.23. N: Sg(L+M) sign : SchemaConstant + pad... + padEnd + HashConstant + SHA256(TRMK_TRAK || TRMK_TREK)
+	VectorUChar _concated;
+	_concated.insert(_concated.end(), outData._TRMK_TRAK.begin(), outData._TRMK_TRAK.end());
+	_concated.insert(_concated.end(), outData._TRMK_TREK.begin(), outData._TRMK_TREK.end());
+
+	VectorUChar _sha256concated = _pCryptoki->generateSHA256(_concated);
+
+	VectorUChar _schemaConstant;
+	_schemaConstant.assign(g_sign_schema_constant, g_sign_schema_constant + sizeof(g_sign_schema_constant));
+
+	VectorUChar _hashConstant;
+	_hashConstant.assign(g_sign_hash_constant, g_sign_hash_constant + sizeof(g_sign_hash_constant));
+
+	int _padsize = GIB_SIGN_LENGTH - (_schemaConstant.size()+
+									  _concated.size() 		+
+									  _hashConstant.size() 	+
+									  1);
+	VectorUChar _padding(_padsize, 0xFF);
+	VectorUChar _signInput;
+	_signInput.insert(_signInput.end(), _schemaConstant.begin(), _schemaConstant.end());
+	_signInput.insert(_signInput.end(), _padding.begin(), _padding.end());
+	_signInput.push_back(0x00);
+	_signInput.insert(_signInput.end(), _hashConstant.begin(), _hashConstant.end());
+	_signInput.insert(_signInput.end(), _sha256concated.begin(), _sha256concated.end());
+
+	Cryptoki::Key priKey = _pCryptoki->getKeyByName(OC_PRIVATE_KEY, GIB_PRIVATE_KEY_NAME);
+	mInfo._type = MT_RSA_PKCS;
+	outData._Signature = priKey.sign(mInfo, _signInput);
 
 	return SUCCESS;
 }
