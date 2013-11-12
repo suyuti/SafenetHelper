@@ -216,7 +216,6 @@ TEST_F(SafenetHelperTests, getTraek) {
 		EXPECT_TRUE(resp._kcv_TRAK.size()  > 0);
 		EXPECT_TRUE(resp._TRMK_TREK.size() > 0);
 		EXPECT_TRUE(resp._TRMK_TRAK.size() > 0);
-
 		EXPECT_TRUE(resp._Signature.size() > 0);
 
 		EXPECT_EQ(SafenetHelperUtil::getActiveLmkIndex(*pC), resp._lmkIndex);
@@ -251,37 +250,30 @@ TEST_F(SafenetHelperTests, getTraek) {
 		VectorUChar trmkTrak = trmk.wrap(mInfo, trak);
 		EXPECT_EQ(trmkTrak, resp._TRMK_TRAK);
 
-		// TODO signature check
+		// signature check
 		VectorUChar _concated;
-		_concated.insert(_concated.end(), trmkTrak.begin(), trmkTrak.end());
-		_concated.insert(_concated.end(), trmkTrek.begin(), trmkTrek.end());
+		_concated.insert(_concated.end(), resp._TRMK_TRAK.begin(), resp._TRMK_TRAK.end());
+		_concated.insert(_concated.end(), resp._TRMK_TREK.begin(), resp._TRMK_TREK.end());
 
 		VectorUChar _sha256concated = pC->generateSHA256(_concated);
 
 		VectorUChar _schemaConstant;
-		_schemaConstant.assign(GIB_SIGN_SCHEMA_CONSTANT, (GIB_SIGN_SCHEMA_CONSTANT + GIB_SIGN_SCHEMA_CONSTANT_SIZE));
+		_schemaConstant.assign(g_sign_schema_constant, g_sign_schema_constant + g_sizeof_sign_schema_constant);
 
-		VectorUChar _paddingEnd(	GIB_SIGN_PADDING_END,
-									GIB_SIGN_PADDING_END +
-									GIB_SIGN_PADDING_END_SIZE);
+		VectorUChar _hashConstant;
+		_hashConstant.assign(g_sign_hash_constant, g_sign_hash_constant + g_sizeof_sign_hash_constant);
 
-		VectorUChar _hashConstant(	GIB_SIGN_HASH_CONSTANT,
-									GIB_SIGN_HASH_CONSTANT +
-									GIB_SIGN_HASH_CONSTANT_SIZE);
-
-		int _padsize = GIB_SIGN_LENGTH
-						- (GIB_SIGN_SCHEMA_CONSTANT_SIZE
-								+ GIB_SIGN_HASH_CONSTANT_SIZE
-								+ _sha256concated.size());
-
-		VectorUChar _padding(_padsize * 2, (unsigned char)GIB_SIGN_PADDING_CONSTANT);
-
+		int _padsize = GIB_SIGN_LENGTH - (_schemaConstant.size() +
+										  _concated.size() +
+										  _hashConstant.size() +
+										  1);
+		VectorUChar _padding(_padsize, 0xFF);
 		VectorUChar _signInput;
-		_signInput.insert(_signInput.end(), _schemaConstant.begin(),	_schemaConstant.end());
-		_signInput.insert(_signInput.end(), _padding.begin(), 			_padding.end());
-		_signInput.insert(_signInput.end(), _paddingEnd.begin(), 		_paddingEnd.end());
-		_signInput.insert(_signInput.end(), _hashConstant.begin(), 		_hashConstant.end());
-		_signInput.insert(_signInput.end(), _sha256concated.begin(), 	_sha256concated.end());
+		_signInput.insert(_signInput.end(), _schemaConstant.begin(), _schemaConstant.end());
+		_signInput.insert(_signInput.end(), _padding.begin(), _padding.end());
+		_signInput.push_back(0x00);
+		_signInput.insert(_signInput.end(), _hashConstant.begin(), _hashConstant.end());
+		_signInput.insert(_signInput.end(), _sha256concated.begin(), _sha256concated.end());
 
 		Cryptoki::Key pubKey = pC->getKeyByName(OC_PUBLIC_KEY, GIB_PUBLIC_KEY_NAME);
 		mInfo._type = MT_RSA_PKCS;
