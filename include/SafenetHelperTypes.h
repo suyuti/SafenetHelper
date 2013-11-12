@@ -22,18 +22,9 @@
 #define GIB_TREK_NAME			"TREK"
 #define GIB_TRAK_NAME			"TRAK"
 
-#define GIB_SIGN_LENGTH					256
-
-#define GIB_SIGN_HASH_CONSTANT 			"3031300d060960864801650304020105000420"
-#define GIB_SIGN_HASH_CONSTANT_SIZE 	38
-
-#define GIB_SIGN_SCHEMA_CONSTANT 		"0001"
-#define GIB_SIGN_SCHEMA_CONSTANT_SIZE 	4
-
-#define GIB_SIGN_PADDING_END			"00"
-#define GIB_SIGN_PADDING_END_SIZE		2
-
-#define GIB_SIGN_PADDING_CONSTANT		'F'
+// TODO Key size 2048 olmali
+#define GIB_RSA_KEY_SIZE				1024
+#define GIB_SIGN_LENGTH					(GIB_RSA_KEY_SIZE / 8)
 
 #include <vector>
 
@@ -86,10 +77,16 @@ typedef struct {
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
 
-extern log4cxx::LoggerPtr g_logger;
-extern log4cxx::LoggerPtr g_loggerCryptoki;
-extern log4cxx::LoggerPtr g_loggerKey;
-extern log4cxx::LoggerPtr g_loggerDataObject;
-extern log4cxx::LoggerPtr g_loggerTest;
+extern log4cxx::LoggerPtr 	g_logger;
+extern log4cxx::LoggerPtr 	g_loggerCryptoki;
+extern log4cxx::LoggerPtr 	g_loggerKey;
+extern log4cxx::LoggerPtr 	g_loggerDataObject;
+extern log4cxx::LoggerPtr 	g_loggerTest;
+
+extern unsigned char 		g_sign_hash_constant[];
+extern int 					g_sizeof_sign_hash_constant;
+
+extern unsigned char 		g_sign_schema_constant[];
+extern int 					g_sizeof_sign_schema_constant;
 
 #endif //_SAFENET_HELPER_TYPES_H_
