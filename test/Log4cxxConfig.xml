@@ -50,9 +50,10 @@
             <appender-ref ref="appxNormalAppender"/>
             <appender-ref ref="ChainsawAppenderXML"/>
             <appender-ref ref="zeroconf"/>
+            <appender-ref ref="appxLogFileAppenderXml"/>
             <appender-ref ref="appxConsoleAppender"/>
         -->
-        <appender-ref ref="appxLogFileAppenderXml"/>
+        <appender-ref ref="appxNormalAppender"/>
     </root>
 
     <!-- Specify the level for some specific categories -->
