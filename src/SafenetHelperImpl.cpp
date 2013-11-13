@@ -193,28 +193,11 @@ int SafenetHelperImpl::getTraek(const VectorUChar& pgTrmk, KeyExchangeResponse& 
 	Cryptoki::Key trmk 	=  sg.unwrap(mInfo, pgTrmk, kAttr);
 
 // 2.14. E: TRAK create      AES256, session based
-	std::stringstream ss("");
-#ifdef __TEST__
-	ss << GIB_TRAK_NAME;
-#else
-	// TODO isimlendirme icin cozunurlugu daha yuksek metod bulmalı. klasik random saniye bazinda farkli veri uretecektir.
-	srand(time(NULL) ^ getpid());
-	// TODO isim random olmali. Test amacli olarak belirli bir isim secildi. Test case'de key'e tekrar erisilebilsin diye
-	ss << "TRAK_" << setfill('0') << setw(4) << random() % 10000 + 1;
-#endif
 	kAttr._token 		= FALSE;
-	Cryptoki::Key trak = SafenetHelperUtil::createAES256Key(_pCryptoki, ss.str(), kAttr);
+	Cryptoki::Key trak = SafenetHelperUtil::createAES256Key(_pCryptoki, GIB_TRAK_NAME, kAttr);
 
 // 2.15. F: TREK create      AES256, session based
-	ss.str("");
-#ifdef __TEST__
-	ss << GIB_TREK_NAME;
-#else
-	srand(time(NULL) ^ getpid());
-	// TODO isim random olmali. Test amacli olarak belirli bir isim secildi. Test case'de key'e tekrar erisilebilsin diye
-	ss << "TREK_" << setfill('0') << setw(4) << random() % 10000 + 1;
-#endif
-	Cryptoki::Key trek = SafenetHelperUtil::createAES256Key(_pCryptoki, ss.str(), kAttr);
+	Cryptoki::Key trek = SafenetHelperUtil::createAES256Key(_pCryptoki, GIB_TREK_NAME, kAttr);
 
 // 2.16. G: active Lmk Index ActiveLmkIndex dataObject'te tutuluyor.
 	outData._lmkIndex 	= SafenetHelperUtil::getActiveLmkIndex(*_pCryptoki);
