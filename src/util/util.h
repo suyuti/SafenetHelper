@@ -12,7 +12,7 @@
 #include <vector>
 #include "../../include/SafenetHelperTypes.h"
 
-#define AES_BLOCKSIZE 16
+#define AES256_BLOCKSIZE 32
 
 class util {
 public:

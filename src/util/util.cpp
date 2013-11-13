@@ -110,7 +110,7 @@ VectorUChar util::pad(const VectorUChar &data)
 		return data;
 
 	VectorUChar paddedData = data;
-	int blocksize = AES_BLOCKSIZE;
+	int blocksize = AES256_BLOCKSIZE;
 	int padlen = blocksize - (data.size() % blocksize) - 1;
 	
 	paddedData.push_back(0x80);
