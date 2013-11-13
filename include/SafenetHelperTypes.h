@@ -22,8 +22,11 @@
 #define GIB_TREK_NAME			"TREK"
 #define GIB_TRAK_NAME			"TRAK"
 
-// TODO Key size 2048 olmali
-#define GIB_RSA_KEY_SIZE				1024
+#ifdef __TEST__
+	#define GIB_RSA_KEY_SIZE				1024
+#else
+	#define GIB_RSA_KEY_SIZE				2048
+#endif
 #define GIB_SIGN_LENGTH					(GIB_RSA_KEY_SIZE / 8)
 
 #include <vector>
