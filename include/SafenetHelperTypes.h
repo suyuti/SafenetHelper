@@ -7,8 +7,9 @@
 #ifndef _SAFENET_HELPER_TYPES_H_
 #define _SAFENET_HELPER_TYPES_H_
 
-// TODO __TEST__ tanimi make dosyasında olmali.
+#ifdef WINDOWS
 #define __TEST__
+#endif
 
 #define HSM_SLOT_GIB			1
 #define HSM_SLOT_GIB_PIN		"1234"
