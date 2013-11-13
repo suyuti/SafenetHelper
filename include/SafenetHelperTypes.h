@@ -23,6 +23,13 @@
 #define GIB_TREK_NAME			"TREK"
 #define GIB_TRAK_NAME			"TRAK"
 
+#ifdef __TEST__
+	#define GIB_RSA_KEY_SIZE				1024
+#else
+	#define GIB_RSA_KEY_SIZE				2048
+#endif
+#define GIB_SIGN_LENGTH					(GIB_RSA_KEY_SIZE / 8)
+
 #include <vector>
 
 using namespace std;
@@ -74,10 +81,16 @@ typedef struct {
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
 
-extern log4cxx::LoggerPtr g_logger;
-extern log4cxx::LoggerPtr g_loggerCryptoki;
-extern log4cxx::LoggerPtr g_loggerKey;
-extern log4cxx::LoggerPtr g_loggerDataObject;
-extern log4cxx::LoggerPtr g_loggerTest;
+extern log4cxx::LoggerPtr 	g_logger;
+extern log4cxx::LoggerPtr 	g_loggerCryptoki;
+extern log4cxx::LoggerPtr 	g_loggerKey;
+extern log4cxx::LoggerPtr 	g_loggerDataObject;
+extern log4cxx::LoggerPtr 	g_loggerTest;
+
+extern unsigned char 		g_sign_hash_constant[];
+extern int 					g_sizeof_sign_hash_constant;
+
+extern unsigned char 		g_sign_schema_constant[];
+extern int 					g_sizeof_sign_schema_constant;
 
 #endif //_SAFENET_HELPER_TYPES_H_

@@ -60,32 +60,40 @@ VectorUChar Key::sign(const MechanismInfo& mech, const VectorUChar& data)
 
 VectorUChar Key::sign(const MechanismInfo& mech, const char* pData, int len)
 {
+	LOG4CXX_INFO(g_loggerKey, "signing ...");
+
 	this->setMechanism(mech);
 
 	VectorUChar vecSignData;
 
 	int rv = C_SignInit(_sessionHandle, &_mech, _objectHandle);
-	if (rv != CKR_OK)
+	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_loggerKey, "sign init error");
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-
+	}
 	CK_SIZE signDataLen;
 	
 	/* Do a length prediction so we allocate enough memory for the signature */
 	rv = C_Sign(_sessionHandle, (unsigned char *)pData, len, NULL, &signDataLen);
-	if (rv != CKR_OK)
+	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_loggerKey, "sign error");
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
-	
+	}
 	CK_BYTE *pSignData = (CK_BYTE*) new CK_BYTE[signDataLen];
-	if (pSignData == NULL)
+	if (pSignData == NULL) {
+		LOG4CXX_ERROR(g_loggerKey, "Memory allocation error");
 		throw ExceptionCryptoki(ExceptionCryptoki::ERROR_MEMORY_ALLOCATION, __FILE__, __LINE__);
-	
+	}
 	rv = C_Sign(_sessionHandle, (unsigned char *)pData, len, pSignData, &signDataLen);
-	if (rv != CKR_OK)
+	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_loggerKey, "sign error");
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	}
 	
 	vecSignData.assign(pSignData, pSignData+signDataLen);
 	delete[] pSignData;
 	
+	LOG4CXX_INFO(g_loggerKey, "signing done");
 	return vecSignData;
 }
 
