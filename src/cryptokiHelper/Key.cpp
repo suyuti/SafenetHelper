@@ -44,13 +44,18 @@ bool Key::verify(const MechanismInfo& mech, const VectorUChar& data, const Vecto
 
 bool Key::verify(const MechanismInfo& mech, const char* pData, int dataLen, const char* pSignature, int signatureLen)
 {
+	LOG4CXX_DEBUG(g_loggerKey, "verifying...");
 	this->setMechanism(mech);
 
 	int rv = C_VerifyInit(_sessionHandle, &_mech, _objectHandle);
-	if (rv != CKR_OK)
+	if (rv != CKR_OK) {
+		LOG4CXX_ERROR(g_loggerKey, "VerifyInit error");
 		throw ExceptionCryptoki(rv, __FILE__, __LINE__);
+	}
+	rv = C_Verify(_sessionHandle, (unsigned char *)pData, dataLen, (unsigned char *)pSignature, signatureLen);
+	LOG4CXX_DEBUG(g_loggerKey, "verify done");
 
-	return C_Verify(_sessionHandle, (unsigned char *)pData, dataLen, (unsigned char *)pSignature, signatureLen) == CKR_OK;
+	return (rv == CKR_OK);
 }
 
 VectorUChar Key::sign(const MechanismInfo& mech, const VectorUChar& data)
