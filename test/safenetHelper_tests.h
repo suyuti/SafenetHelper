@@ -190,6 +190,7 @@ TEST_F(SafenetHelperTests, getFisCalNo) {
 //-----------------------------------------------------------------------
 
 TEST_F(SafenetHelperTests, getTraek) {
+	LOG4CXX_DEBUG(g_loggerTest, "--------------getTraek begin------------");
 	EXPECT_NO_THROW({
 		Cryptoki::CryptokiHelper* pC = Cryptoki::CryptokiHelper::instance();
 
@@ -205,10 +206,13 @@ TEST_F(SafenetHelperTests, getTraek) {
 		mInfo._paramLen = 0;
 		mInfo._type 	= MT_RSA_PKCS;
 		VectorUChar 	pgTrmk 	= pubGib.wrap(mInfo, trmk);
-
+		LOG4CXX_DEBUG(g_loggerTest, "Test prepared");
+		// testee
 		KeyExchangeResponse resp;
 		int err = _pSafenet->getTraek(pgTrmk, resp);
 
+		LOG4CXX_DEBUG(g_loggerTest, "Checking results");
+		// check results
 		EXPECT_EQ(SUCCESS, err);
 		EXPECT_TRUE(resp._lmk_TREK.size()  > 0);
 		EXPECT_TRUE(resp._lmk_TRAK.size()  > 0);
@@ -280,6 +284,7 @@ TEST_F(SafenetHelperTests, getTraek) {
 		bool verified = pubKey.verify(mInfo, _signInput, resp._Signature);
 		EXPECT_TRUE(verified);
 	});
+	LOG4CXX_INFO(g_loggerTest, "--------------getTraek end------------");
 }
 
 //-----------------------------------------------------------------------
